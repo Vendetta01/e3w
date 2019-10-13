@@ -11,11 +11,11 @@ import (
 func NewE3chClient(config *conf.Config) (*client.EtcdHRCHYClient, error) {
 	var tlsConfig *tls.Config
 	var err error
-	if config.CertFile != "" && config.KeyFile != "" && config.CAFile != "" {
+	if config.EtcdCertFile != "" && config.EtcdKeyFile != "" && config.EtcdCAFile != "" {
 		tlsInfo := transport.TLSInfo{
-			CertFile:      config.CertFile,
-			KeyFile:       config.KeyFile,
-			TrustedCAFile: config.CAFile,
+			CertFile:      config.EtcdCertFile,
+			KeyFile:       config.EtcdKeyFile,
+			TrustedCAFile: config.EtcdCAFile,
 		}
 		tlsConfig, err = tlsInfo.ClientConfig()
 		if err != nil {
@@ -33,7 +33,7 @@ func NewE3chClient(config *conf.Config) (*client.EtcdHRCHYClient, error) {
 		return nil, err
 	}
 
-	client, err := client.New(clt, config.EtcdRootKey, config.DirValue)
+	client, err := client.New(clt, config.EtcdRootKey, config.EtcdDirValue)
 	if err != nil {
 		return nil, err
 	}
