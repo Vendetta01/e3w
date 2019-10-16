@@ -4,12 +4,12 @@ import { message } from 'antd'
 function handler(callback) {
     return function (err, response) {
         if (err) {
-            message.error(err);
+            message.error(err, 5);
         } else {
             if (response && response.body) {
                 let resp = JSON.parse(response.body)
                 if (resp.err) {
-                    message.error(resp.err)
+                    message.error(resp.err, 5)
                 } else if (callback) {
                     callback(resp.result)
                 }

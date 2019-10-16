@@ -28,3 +28,4 @@ _testmain.go
 e3w
 vendor
 conf/config.default.ini.*
+certs/
