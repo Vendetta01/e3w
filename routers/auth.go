@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/VendettA01/e3w/conf"
 	"github.com/gin-gonic/gin"
 	"github.com/satori/go.uuid"
-	"github.com/soyking/e3w/conf"
 )
 
 const (

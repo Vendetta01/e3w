@@ -1,11 +1,11 @@
 package routers
 
 import (
+	"github.com/VendettA01/e3w/conf"
+	"github.com/VendettA01/e3w/e3ch"
 	"github.com/coreos/etcd/clientv3"
 	"github.com/gin-gonic/gin"
 	"github.com/soyking/e3ch"
-	"github.com/soyking/e3w/conf"
-	"github.com/soyking/e3w/e3ch"
 )
 
 const (
@@ -48,13 +48,15 @@ func InitRouters(g *gin.Engine, config *conf.Config, e3chClt *client.EtcdHRCHYCl
 
 	g.Static("/public", "./static/dist")
 
-	g.GET("/login", func(c *gin.Context) {
-		c.File("./static/dist/login.html")
-	})
-	g.POST("/login", logIn)
-	g.GET("/logout", logOut)
-
-	private := g.Group("/", authRequired)
+	private := g.Group("/")
+	if conf.Conf.Auth {
+		g.GET("/login", func(c *gin.Context) {
+			c.File("./static/dist/login.html")
+		})
+		g.POST("/login", logIn)
+		g.GET("/logout", logOut)
+		private.Use(authRequired)
+	}
 
 	private.GET("/", func(c *gin.Context) {
 		c.File("./static/dist/index.html")

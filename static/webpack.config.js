@@ -7,6 +7,11 @@ var plugins = [
         filename: 'index.html',
         template: './src/index.html',
         inject: false,
+    }),
+    new HtmlWebpackPlugin({
+        filename: 'login.html',
+        template: './src/login.html',
+        inject: false,
     })
 ]
 

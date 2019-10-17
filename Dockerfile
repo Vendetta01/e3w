@@ -8,9 +8,9 @@ ENV E3W_GIT_SRC_URL
 ENV E3W_GIT_COMMIT
 
 RUN curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-RUN mkdir -p /go/src/github.com/soyking/e3w
-RUN git clone ${E3W_GIT_SRC_URL} /go/src/github.com/soyking/e3w
-WORKDIR /go/src/github.com/soyking/e3w
+RUN mkdir -p /go/src/github.com/VendettA01/e3w
+RUN git clone ${E3W_GIT_SRC_URL} /go/src/github.com/VendettA01/e3w
+WORKDIR /go/src/github.com/VendettA01/e3w
 #RUN git checkout ${E3W_GIT_COMMIT}
 RUN dep ensure
 RUN CGO_ENABLED=0 go build
@@ -39,9 +39,9 @@ FROM alpine:edge
 
 RUN apk --no-cache add bash
 RUN mkdir -p /app/static/dist /app/conf
-COPY --from=backend /go/src/github.com/soyking/e3w/e3w /app
+COPY --from=backend /go/src/github.com/VendettA01/e3w/e3w /app
 COPY --from=frontend /app/dist /app/static/dist
-COPY --from=backend /go/src/github.com/soyking/e3w/conf/config.default.ini /app/conf
+COPY --from=backend /go/src/github.com/VendettA01/e3w/conf/config.default.ini /app/conf
 COPY --from=backend /tmp/wait-for-it/wait-for-it.sh /usr/bin/wait-for-it.sh
 RUN chmod 755 /usr/bin/wait-for-it.sh
 COPY scripts/* /usr/bin/
