@@ -4,45 +4,46 @@ import { Box } from 'react-polymer-layout'
 import { KVPost, KVDelete } from './request'
 import { DeleteButton } from './utils'
 
-const KeyValueCreate = React.createClass({
-    _createDone(result) {
+class KeyValueCreate extends React.Component {
+    constructor(props) {
+	super(props)
+	this.state = { dir: "", key: "", value: "" }
+    }
+
+    _createDone = (result) => {
         this.setState({ key: "", value: "" })
         this.props.update()
-    },
+    }
 
-    _createKey(e) {
+    _createKey = (e) => {
         KVPost(this.props.fullKey(this.state.key), this.state.value, this._createDone)
-    },
+    }
 
-    _createDir(e) {
+    _createDir = (e) => {
         KVPost(this.props.fullKey(this.state.key) + "?dir", null, this._createDone)
-    },
+    }
 
-    _deleteDone(result) {
+    _deleteDone = (result) => {
         this.props.back()
-    },
+    }
 
-    _deleteDir() {
+    _deleteDir = () => {
         KVDelete(this.state.dir, this._deleteDone)
-    },
+    }
 
-    getInitialState() {
-        return { dir: "", key: "", value: "" }
-    },
-
-    _updateDir(props) {
+    _updateDir = (props) => {
         this.setState({ dir: props.dir, key: "", value: "" })
-    },
+    }
 
     componentDidMount() {
         this._updateDir(this.props)
-    },
+    }
 
     componentWillReceiveProps(nextProps) {
         if (this.props.dir !== nextProps.dir) {
             this._updateDir(nextProps)
         }
-    },
+    }
 
     render() {
         let cantClick = this.state.key === ""
@@ -52,7 +53,7 @@ const KeyValueCreate = React.createClass({
                     <Input size="large" addonBefore={this.state.dir} placeholder="dir / key name" value={this.state.key} onChange={e => this.setState({ key: e.target.value }) } />
                 </Box>
                 <div style={{ width: "100%", paddingTop: 10 }}>
-                    <Input type="textarea" rows={4} value={this.state.value} onChange={e => this.setState({ value: e.target.value }) } />
+                    <Input.TextArea rows={4} value={this.state.value} onChange={e => this.setState({ value: e.target.value }) } />
                 </div>
                 <Box justified >
                     {
@@ -69,6 +70,7 @@ const KeyValueCreate = React.createClass({
             </Box>
         )
     }
-})
+}
 
-module.exports = KeyValueCreate
+export default KeyValueCreate
+

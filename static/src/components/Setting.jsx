@@ -2,34 +2,35 @@ import React from 'react'
 import { Box } from 'react-polymer-layout'
 import { Input } from 'antd'
 
-const Setting = React.createClass({
-    _loadSetting() {
-        this.setState({ username: localStorage.etcdUsername, password: localStorage.etcdPassword })
-    },
+class Setting extends React.Component {
+    constructor(props) {
+	super(props)
+	this.state = { username: "", password: "" }
+    }
 
-    _saveUsername(e) {
+    _loadSetting = () => {
+        this.setState({ username: localStorage.etcdUsername, password: localStorage.etcdPassword })
+    }
+
+    _saveUsername = (e) => {
         let username = e.target.value
         this.setState({ username: username })
         localStorage.etcdUsername = username
-    },
+    }
 
-    _savePassword(e) {
+    _savePassword = (e) => {
         let password = e.target.value
         this.setState({ password: password })
         localStorage.etcdPassword = password
-    },
+    }
 
     componentDidMount() {
         this._loadSetting()
-    },
+    }
 
     componentWillReceiveProps(nextProps) {
         this._loadSetting()
-    },
-
-    getInitialState() {
-        return { username: "", password: "" }
-    },
+    }
 
     render() {
         let inputStyle = { margin: "10px 0px 10px" }
@@ -55,6 +56,7 @@ const Setting = React.createClass({
             </Box>
         )
     }
-})
+}
 
-module.exports = Setting
+export default Setting
+

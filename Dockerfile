@@ -1,11 +1,11 @@
 ARG E3W_GIT_SRC_URL=https://github.com/VendettA01/e3w.git
-ARG E3W_GIT_COMMIT=c85c4e78f43761cc070c082158ca2c5b6e895ed9
+#ARG E3W_GIT_COMMIT=c85c4e78f43761cc070c082158ca2c5b6e895ed9
 
 
 FROM golang:1.9 AS backend
 
-ENV E3W_GIT_SRC_URL
-ENV E3W_GIT_COMMIT
+ARG E3W_GIT_SRC_URL
+#ENV E3W_GIT_COMMIT
 
 RUN curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
 RUN mkdir -p /go/src/github.com/VendettA01/e3w
@@ -20,8 +20,8 @@ RUN git clone https://github.com/vishnubob/wait-for-it.git /tmp/wait-for-it/
 
 FROM node:8 AS frontend
 
-ENV E3W_GIT_SRC_URL
-ENV E3W_GIT_COMMIT
+ARG E3W_GIT_SRC_URL
+#ENV E3W_GIT_COMMIT
 
 RUN mkdir /app
 RUN git clone ${E3W_GIT_SRC_URL} /tmp/e3w

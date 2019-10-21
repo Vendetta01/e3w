@@ -2,8 +2,8 @@ import React from 'react'
 import { Box } from 'react-polymer-layout'
 import { Icon } from 'antd'
 
-const KeyValueItem = React.createClass({
-    _enter() {
+class KeyValueItem extends React.Component {
+    _enter = () => {
         let info = this.props.info
         if (info.is_dir) {
             this.props.enter(info.key)
@@ -12,7 +12,7 @@ const KeyValueItem = React.createClass({
         } else {
             this.props.set(info.key)
         }
-    },
+    }
 
     render() {
         let info = this.props.info
@@ -32,6 +32,7 @@ const KeyValueItem = React.createClass({
             </Box>
         )
     }
-})
+}
 
-module.exports = KeyValueItem
+export default KeyValueItem
+

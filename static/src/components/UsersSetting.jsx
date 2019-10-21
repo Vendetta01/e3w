@@ -1,12 +1,12 @@
 import React from 'react'
 import { Box } from 'react-polymer-layout'
-import { UsersGet, User, UsersGrantRole, UsersRovokeRole, UsersChangePassword, RolesAll } from './request'
+import { UsersGet, UsersGrantRole, UsersRovokeRole, UsersChangePassword, RolesAll } from './request'
 import { Tag, Select, Button, Input } from 'antd'
 
 const Option = Select.Option
 const roleColors = ["blue", "green", "yellow", "red"]
 
-const RoleItem = React.createClass({
+class RoleItem extends React.Component {
     render() {
         let color = roleColors[(this.props.index || 0) % roleColors.length]
         return (
@@ -17,78 +17,79 @@ const RoleItem = React.createClass({
             </Box>
         )
     }
-})
+}
 
-const UsersSetting = React.createClass({
-    _getUserDone(result) {
+class UsersSetting extends React.Component {
+    constructor(props) {
+	super(props)
+	this.state = { roles: [], allRoles: [], selectedRole: "", password: "" }
+    }
+
+    _getUserDone = (result) => {
         this.setState({ roles: result || [] })
-    },
+    }
 
-    _getUser(props) {
+    _getUser = (props) => {
         if (props.name) {
             UsersGet(props.name, this._getUserDone)
         }
-    },
+    }
 
-    _getAllRolesDone(result) {
+    _getAllRolesDone = (result) => {
         this.setState({ allRoles: result || [] })
-    },
+    }
 
-    _getAllRoles() {
+    _getAllRoles = () => {
         RolesAll(this._getAllRolesDone)
-    },
+    }
 
-    _enter(props) {
+    _enter = (props) => {
         this._getUser(props)
         this._getAllRoles()
         this.setState({ selectedRole: "", password: "" })
-    },
+    }
 
-    _refresh() {
+    _refresh = () => {
         this._getUser(this.props)
-    },
+    }
 
-    _revokeRoleDone() {
-        _refresh()
-    },
+    _revokeRoleDone = () => {
+        this._refresh()
+    }
 
-    _revokeRole(role) {
+    _revokeRole = (role) => {
         if (this.props.name && role) {
             UsersRovokeRole(this.props.name, role, this._revokeRoleDone)
         }
-    },
+    }
 
-    _grantRoleDone(result) {
+    _grantRoleDone = (result) => {
         this._refresh()
-    },
+    }
 
-    _grantRole() {
+    _grantRole = () => {
         if (this.props.name && this.state.selectedRole) {
             UsersGrantRole(this.props.name, this.state.selectedRole, this._grantRoleDone)
         }
-    },
+    }
 
-    _selectRole(value) {
+    _selectRole = (value) => {
         this.setState({ selectedRole: value })
-    },
+    }
 
-    _changePassword() {
+    _changePassword = () => {
         UsersChangePassword(this.props.name, this.state.password, () => { })
-    },
+    }
 
     componentDidMount() {
         this._enter(this.props)
-    },
+    }
 
     componentWillReceiveProps(nextProps) {
         if (nextProps.name !== this.props.name) {
             this._enter(nextProps)
         }
-    },
-
-    getInitialState() {
-        return { roles: [], allRoles: [], selectedRole: "", password: "" }
-    },
+    }
 
     render() {
         let boxStyle = { padding: 10, fontSize: 16, fontWeight: 700 }
@@ -134,6 +135,7 @@ const UsersSetting = React.createClass({
             </Box>
         )
     }
-})
+}
 
-module.exports = UsersSetting
+export default UsersSetting
+

@@ -7,17 +7,23 @@ import KeyValueItem from './KeyValueItem'
 import KeyValueSetting from './KeyValueSetting'
 import { CommonPanel } from './utils'
 
-const KeyValue = React.createClass({
+class KeyValue extends React.Component {
     // states:
     // - dir: the full path of current dir, eg. / or /abc/def
     // - menus: components of Breadcrumb, including path (to another dir, using in url hash) and name
     // - list: the key under the dir, get from api
 
-    _isRoot() {
-        return this.state.dir === "/"
-    },
+    constructor(props) {
+	super(props)
+	this.state = { dir: "", menus: [], list: [], setting: false, currentKey: "" }
 
-    _parseList(list) {
+    }
+
+    _isRoot = () => {
+        return this.state.dir === "/"
+    }
+
+    _parseList = (list) => {
         list = list || []
         // sorted dir and normal kv
         list.sort((l1, l2) => { return l1.is_dir === l2.is_dir ? l1.key > l2.key : l1.is_dir ? -1 : 1 })
@@ -27,10 +33,10 @@ const KeyValue = React.createClass({
             l.key = l.key.slice(prefixLen)
         })
         this.setState({ list: list })
-    },
+    }
 
     // dir should be / or /abc/def
-    _ParseDir(dir) {
+    _ParseDir = (dir) => {
         let menus = [{ path: "/", name: "ROOT" }]
         if (dir !== "/") {
             let keys = dir.split("/")
@@ -41,81 +47,88 @@ const KeyValue = React.createClass({
         }
         KVList(dir, this._parseList)
         return { dir: dir, menus: menus }
-    },
+    }
 
     // list current dir and using KeyValueSetting
-    _fetch(dir) {
+    _fetch = (dir) => {
         this.setState(this._ParseDir(dir))
         this.setState({ setting: false })
-    },
+    }
 
     // change url
-    _redirect(dir) {
-        window.location.hash = "#kv" + dir
-    },
+    _redirect = (dir) => {
+        window.location.hash = "#/kv" + dir
+    }
 
-    _fullKey(subKey) {
-        return (this._isRoot() ? "/" : this.state.dir + "/") + subKey
-    },
+    _fullKey = (subKey) => (this._isRoot() ? "/" : this.state.dir + "/") + subKey;
 
     // callback for clicking KeyValueItem to enter a new dir
-    _enter(subKey) {
+    _enter = (subKey) => {
         this._redirect(this._fullKey(subKey))
-    },
+    }
 
     // callback for clicking KeyValueItem to set the kv
-    _set(subKey) {
+    _set = (subKey) => {
         let list = this.state.list
         list.forEach(l => {
             if (l.key === subKey) { l.selected = true } else { l.selected = false }
         })
         this.setState({ setting: true, currentKey: this._fullKey(subKey), list: list })
-    },
+    }
 
     // call back for clicking KeyValueItem again
-    _unset(subKey) {
+    _unset = (subKey) => {
         let list = this.state.list
         list.forEach(l => {
             l.selected = false
         })
         this.setState({ setting: false, list: list })
-    },
+    }
 
     // callback for deleting a key in KeyValueItem
-    _delete() {
+    _delete = () => {
         this._fetch(this.state.dir)
-    },
+    }
 
     // callback for creating kv or dir
-    _update() {
+    _update = () => {
         this._fetch(this.state.dir)
-    },
+    }
 
     // callback for delete currentDir and enter previous dir
-    _back() {
+    _back = () => {
         let menus = this.state.menus
         let targetPath = (menus[menus.length - 2] || menus[0]).path
         this._redirect(targetPath)
-    },
+    }
 
     // refresh the page with new path in url
-    _refresh(props) {
-        this._fetch("/" + (props.params.splat || ""))
-    },
+    _refresh = (path) => {
+	this._fetch(path)
+    }
+
+    _getDirFromProps = () => {
+	let _path = "/"
+	if (typeof this.props.match.params.path !== "undefined") {
+	    _path = _path + this.props.match.params.path
+	}
+	return _path
+    }
+
+    _setDirFromProps = () => {
+	let _path = this._getDirFromProps()
+	if (_path !== this.state.dir) {
+	    this._refresh(_path)
+	}
+    }
 
     componentDidMount() {
-        this._refresh(this.props)
-    },
+	this._setDirFromProps()
+    }
 
-    componentWillReceiveProps(nextProps) {
-        if (this.props.params.splat !== nextProps.params.splat) {
-            this._refresh(nextProps)
-        }
-    },
-
-    getInitialState() {
-        return { dir: "", menus: [], list: [], setting: false, currentKey: "" }
-    },
+    componentDidUpdate(prevProps, prevState) {
+	this._setDirFromProps()
+    }
 
     render() {
         let currentKey = this.state.currentKey
@@ -125,7 +138,7 @@ const KeyValue = React.createClass({
                     <Breadcrumb>
                         {
                             this.state.menus.map(
-                                m => (<Breadcrumb.Item key={m.path} onClick={() => this._redirect(m.path) }><a>{m.name}</a></Breadcrumb.Item>)
+                                m => (<Breadcrumb.Item onClick={() => this._redirect(m.path) } href={"#/kv" + m.path} key={m.path}>{m.name}</Breadcrumb.Item>)
                             )
                         }
                     </Breadcrumb>
@@ -148,6 +161,7 @@ const KeyValue = React.createClass({
             </Box >
         )
     }
-})
+}
 
-module.exports = KeyValue
+export default KeyValue
+

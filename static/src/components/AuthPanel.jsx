@@ -3,7 +3,7 @@ import { Box } from 'react-polymer-layout'
 import { Input, Button } from 'antd'
 import { CommonPanel } from './utils'
 
-const AuthItem = React.createClass({
+class AuthItem extends React.Component {
     render() {
         let item = this.props.item
         let bColor = item.selected ? "#95ccf5" : "#c3c3c3"
@@ -21,24 +21,25 @@ const AuthItem = React.createClass({
             </Box>
         )
     }
-})
+}
 
-const AuthCreate = React.createClass({
-    _clean() {
+class AuthCreate extends React.Component {
+    constructor(props) {
+	super(props)
+	this.state = { name : "" }
+    }
+
+    _clean = () => {
         this.setState({ name: "" })
-    },
+    }
 
     componentDidMount() {
         this._clean()
-    },
+    }
 
     componentWillReceiveProps(nextProps) {
         this._clean()
-    },
-
-    getInitialState() {
-        return { name: "" }
-    },
+    }
 
     render() {
         return (
@@ -54,17 +55,22 @@ const AuthCreate = React.createClass({
             </Box>
         )
     }
-})
+}
 
-const AuthPanel = React.createClass({
-    _prepareItems(props) {
+class AuthPanel extends React.Component {
+    constructor(props) {
+	super(props)
+	this.state = { items: [], selectedItem: "" }
+    }
+
+    _prepareItems = (props) => {
         let rawItems = props.items || []
         let items = []
         rawItems.forEach(i => { items.push({ name: i, selected: false }) })
         this.setState({ items: items })
-    },
+    }
 
-    _selectItem(name) {
+    _selectItem = (name) => {
         let items = this.state.items
         let unset = false
         items.forEach(i => {
@@ -79,28 +85,24 @@ const AuthPanel = React.createClass({
             }
         })
         this.setState({ items: items, selectedItem: unset ? "" : name })
-    },
+    }
 
-    _createItem(name) {
+    _createItem = (name) => {
         this.props.create(name)
-    },
+    }
 
-    _deleteItem() {
+    _deleteItem = () => {
         this.props.delete(this.state.selectedItem)
         this.setState({ selectedItem: "" })
-    },
+    }
 
     componentDidMount() {
         this._prepareItems(this.props)
-    },
+    }
 
     componentWillReceiveProps(nextProps) {
         this._prepareItems(nextProps)
-    },
-
-    getInitialState() {
-        return { items: [], selectedItem: "" }
-    },
+    }
 
     render() {
         let title = this.props.title || ""
@@ -143,6 +145,7 @@ const AuthPanel = React.createClass({
             </Box >
         )
     }
-})
+}
 
-module.exports = AuthPanel
+export default AuthPanel
+

@@ -8,7 +8,7 @@ const RadioGroup = Radio.Group
 const PermTypes = ["READWRITE", "READ", "WRITE"]
 const KeyTypes = ["RANGE", "PREFIX"]
 
-const PermItem = React.createClass({
+class PermItem extends React.Component {
     render() {
         let perm = this.props.perm
         let typeColor = "#ccc"
@@ -22,6 +22,9 @@ const PermItem = React.createClass({
             case "WRITE":
                 typeColor = "#01b3ca"
                 break
+	    default:
+		typeColor = "#000000"
+		break
         }
         return (
             <Box center>
@@ -50,57 +53,58 @@ const PermItem = React.createClass({
             </Box>
         )
     }
-})
+}
 
-const RolesSetting = React.createClass({
-    _getRoleDone(result) {
+class RoleSetting extends React.Component {
+    constructor(props) {
+	super(props)
+	this.state = { name: "", perms: [], permType: PermTypes[0], keyType: KeyTypes[0], key: "", rangeEnd: "" }
+    }
+
+    _getRoleDone = (result) => {
         this.setState({ perms: result || [] })
-    },
+    }
 
-    _getRole(props) {
+    _getRole = (props) => {
         if (props.name) {
             RolesGet(props.name, this._getRoleDone)
         }
-    },
+    }
 
-    _selectPermType(e) {
+    _selectPermType = (e) => {
         this.setState({ permType: e.target.value })
-    },
+    }
 
-    _selectKeyType(e) {
+    _selectKeyType = (e) => {
         this.setState({ keyType: e.target.value })
-    },
+    }
 
-    _addPermDone(result) {
+    _addPermDone = (result) => {
         this._getRole(this.props)
-    },
+    }
 
-    _addPerm() {
+    _addPerm = () => {
         let state = this.state
         RolesAddPerm(this.props.name, state.permType, state.key, state.rangeEnd, state.keyType === "PREFIX", this._addPermDone)
-    },
+    }
 
-    _deletePermDone() {
+    _deletePermDone = () => {
         this._getRole(this.props)
-    },
+    }
 
-    _deletePerm(p) {
+    _deletePerm = (p) => {
         RolesDeletePerm(this.props.name, p.key, p.range_end, this._deletePermDone)
-    },
+    }
 
     componentDidMount() {
         this._getRole(this.props)
-    },
+    }
 
     componentWillReceiveProps(nextProps) {
         if (nextProps.name !== this.props.name) {
             this._getRole(nextProps)
         }
-    },
-
-    getInitialState() {
-        return { name: "", perms: [], permType: PermTypes[0], keyType: KeyTypes[0], key: "", rangeEnd: "" }
-    },
+    }
 
     render() {
         let radioStyle = { padding: "5px 0px 5px 0px" }
@@ -145,6 +149,7 @@ const RolesSetting = React.createClass({
             </Box>
         )
     }
-})
+}
 
-module.exports = RolesSetting
+export default RoleSetting
+

@@ -3,7 +3,7 @@ import { Box } from 'react-polymer-layout'
 import { MembersGet } from './request'
 import { Icon } from 'antd'
 
-const Member = React.createClass({
+class Member extends React.Component {
     render() {
         let member = this.props.member
         let size = 100
@@ -55,28 +55,29 @@ const Member = React.createClass({
             </Box >
         )
     }
-})
+}
 
-const Members = React.createClass({
-    _getDone(result) {
+class Members extends React.Component {
+    constructor(props) {
+	super(props)
+	this.state = { members: [] }
+    }
+
+    _getDone = (result) => {
         this.setState({ members: result })
-    },
+    }
 
-    _get() {
+    _get = () => {
         MembersGet(this._getDone)
-    },
-
-    getInitialState() {
-        return { members: [] }
-    },
+    }
 
     componentDidMount() {
         this._get()
-    },
+    }
 
     componentWillReceiveProps(nextProps) {
         this._get()
-    },
+    }
 
     render() {
         return (
@@ -91,6 +92,7 @@ const Members = React.createClass({
             </Box >
         )
     }
-})
+}
 
-module.exports = Members
+export default Members
+

@@ -2,7 +2,7 @@ import React from 'react'
 import { Popconfirm, Button } from 'antd'
 import { Box } from 'react-polymer-layout'
 
-const DeleteButton = React.createClass({
+class DeleteButton extends React.Component {
     render() {
         return (
             <Popconfirm title="Sure to delete?" okText="Yes" cancelText="No" onConfirm={this.props.delete}>
@@ -10,9 +10,9 @@ const DeleteButton = React.createClass({
             </Popconfirm>
         )
     }
-})
+}
 
-const CommonPanel = React.createClass({
+class CommonPanel extends React.Component {
     render() {
         let bColor = this.props.color ? this.props.color : "#ddd"
         return (
@@ -30,6 +30,7 @@ const CommonPanel = React.createClass({
             </Box>
         )
     }
-})
+}
 
-module.exports = { DeleteButton, CommonPanel }
+export { DeleteButton, CommonPanel }
+

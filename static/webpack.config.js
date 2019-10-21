@@ -29,21 +29,25 @@ module.exports = {
         filename: 'bundle.js'
     },
     resolve: {
-        extensions: ['', '.js', '.jsx']
+	extensions: ['.js', '.jsx'],
+	enforceExtension: false
     },
     module: {
-        loaders: [{
+        rules: [{
             test: /.jsx$/,
-            loader: 'babel',
+	    loader: 'babel-loader',
             exclude: /node_modules/,
             query: {
-                presets: ['react', 'es2015'],
-                plugins: ['antd']
+                presets: ['@babel/preset-react', '@babel/preset-env'],
+                plugins: [['import', { "libraryName": "antd"}], '@babel/plugin-proposal-class-properties']
             }
         }, {
-                test: /\.css$/,
-                loader: 'style-loader!css-loader'
-            }]
+            test: /\.css$/,
+	    use : [
+		'style-loader',
+		'css-loader'
+	    ]
+        }]
     },
     plugins: plugins
 }
