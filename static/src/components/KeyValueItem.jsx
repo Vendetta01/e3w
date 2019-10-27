@@ -4,6 +4,8 @@ import { Icon } from 'antd'
 
 class KeyValueItem extends React.Component {
     _enter = () => {
+	console.log("__DEBUG_KEYVALUEITEM__")
+	console.log(this.props)
         let info = this.props.info
         if (info.is_dir) {
             this.props.enter(info.key)

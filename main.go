@@ -13,22 +13,8 @@ import (
 
 const (
 	PROGRAM_NAME    = "e3w"
-	PROGRAM_VERSION = "0.0.3"
+	PROGRAM_VERSION = "0.1.0"
 )
-
-/*func init() {
-	flag.StringVar(&configFilepath, "conf", "conf/config.default.ini", "config file path")
-	rev := flag.Bool("rev", false, "print rev")
-	flag.Parse()
-
-	if *rev {
-		fmt.Printf("[%s v%s]\n[etcd %s]\n",
-			PROGRAM_NAME, PROGRAM_VERSION,
-			version.Version,
-		)
-		os.Exit(0)
-	}
-}*/
 
 func main() {
 	// Initial parsing of command line options to get ConfigFile

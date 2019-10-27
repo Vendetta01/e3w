@@ -1,12 +1,14 @@
 import React from 'react'
-import { HashRouter, Link, Route, Switch } from 'react-router-dom'
+import { HashRouter, Link, Redirect, Route, Switch } from 'react-router-dom'
 import { Menu, Icon } from 'antd'
 import { Box } from 'react-polymer-layout'
 import KeyValue from './KeyValue'
+import Login from './Login'
 import Members from './Members'
 import Roles from './Roles'
+import Setting from './Setting'
 import Users from './Users'
-import Setting from "./Setting"
+import withAuth from './withAuth'
 
 class App extends React.Component {
     constructor(props) {
@@ -27,6 +29,10 @@ class App extends React.Component {
         this.setState({ menu: this._getMenu() })
     }
 
+    _appSetDir = (dir) => {
+	this.setState({ dir: dir })
+    }
+
     componentDidMount() {
         this._changeMenu()
     }
@@ -37,8 +43,8 @@ class App extends React.Component {
 	}
     }
 
-    handleClick = (e) => {
-	if (e.key !== this.state.menu) {
+    handleClick = (event) => {
+	if (event.key !== this.state.menu) {
 	    this._changeMenu()
 	}
     }
@@ -87,7 +93,7 @@ class App extends React.Component {
                         </Menu>
                     </Box>
                     <div style={{ paddingTop: 20 }}>
-			<AppBody />
+			<AppBody _appSetDir={this._appSetDir} initDir={this.state.dir}/>
                     </div>
                 </Box>
             </Box>
@@ -101,12 +107,13 @@ class AppBody extends React.Component {
     render() {
 	return (
 	    <Switch>
-		<Route exact path="/kv" component={KeyValue} />
-		<Route path="/kv/:path" component={KeyValue} />
-		<Route path="/members" component={Members} />
-		<Route path="/roles" component={Roles} />
-		<Route path="/users" component={Users} />
-		<Route path="/setting" component={Setting} />
+		<Route exact path="/"><Redirect to="/kv" /></Route>
+		<Route path="/login" component={Login} />
+		<Route path="/kv" component={withAuth(KeyValue)} />
+		<Route path="/members" component={withAuth(Members)} />
+		<Route path="/roles" component={withAuth(Roles)} />
+		<Route path="/users" component={withAuth(Users)} />
+		<Route path="/setting" component={withAuth(Setting)} />
 	    </Switch>
 	)
     }

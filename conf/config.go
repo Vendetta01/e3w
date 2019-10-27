@@ -4,13 +4,13 @@ import (
 	"flag"
 	"fmt"
 	"gopkg.in/ini.v1"
-	"strings"
 )
 
 type Config struct {
 	ConfigFile       string
 	Port             string
 	Auth             bool
+	TokenMaxAge      int
 	CertFile         string
 	KeyFile          string
 	Username         string
@@ -34,6 +34,7 @@ func init() {
 	flag.StringVar(&Conf.ConfigFile, "configfile", "conf/config.default.ini", "The e3w config file")
 	flag.StringVar(&Conf.Port, "port", "8080", "Port bound to web server")
 	flag.BoolVar(&Conf.Auth, "auth", false, "Use authentication for web server")
+	flag.IntVar(&Conf.TokenMaxAge, "tokenmaxage", 120, "How long is an authentication token valid (in seconds)")
 	flag.StringVar(&Conf.CertFile, "certfile", "", "Web server cert file")
 	flag.StringVar(&Conf.KeyFile, "keyfile", "", "Web server key file")
 	flag.StringVar(&Conf.Username, "username", "", "User name for web server auth")
@@ -59,6 +60,7 @@ func InitConfig() error {
 	appSec := cfg.Section("app")
 	Conf.Port = appSec.Key("port").Value()
 	Conf.Auth = appSec.Key("auth").MustBool()
+	Conf.TokenMaxAge = appSec.Key("tokenmaxage").MustInt()
 	Conf.CertFile = appSec.Key("cert_file").Value()
 	Conf.KeyFile = appSec.Key("key_file").Value()
 	Conf.Username = appSec.Key("username").Value()
@@ -79,8 +81,4 @@ func InitConfig() error {
 	Conf.EtcdCAFile = etcdSec.Key("ca_file").Value()
 
 	return nil
-}
-
-func ParseEndPoints() {
-	Conf.EtcdEndPoints = strings.Split(Conf.EtcdEndPointsRaw, ",")
 }

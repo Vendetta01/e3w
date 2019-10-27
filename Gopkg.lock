@@ -86,18 +86,6 @@
   version = "v1.0.1"
 
 [[projects]]
-  digest = "1:c0ce0612413fe6a36f7056c04a3a71df0341a210aafc466b410b46ef9b16afc4"
-  name = "github.com/soyking/e3w"
-  packages = [
-    "conf",
-    "e3ch",
-    "routers",
-  ]
-  pruneopts = ""
-  revision = "c85c4e78f43761cc070c082158ca2c5b6e895ed9"
-  version = "v0.0.2"
-
-[[projects]]
   branch = "master"
   digest = "1:6c2dd6300fe09b324487d1f11205ecb9a8f6ae7be14fb8d1ed1f0b6f964a2842"
   name = "github.com/ugorji/go"
@@ -226,9 +214,6 @@
     "github.com/gin-gonic/gin",
     "github.com/satori/go.uuid",
     "github.com/soyking/e3ch",
-    "github.com/soyking/e3w/conf",
-    "github.com/soyking/e3w/e3ch",
-    "github.com/soyking/e3w/routers",
     "golang.org/x/net/context",
     "gopkg.in/ini.v1",
   ]

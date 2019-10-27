@@ -1,6 +1,7 @@
 package routers
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -10,16 +11,17 @@ import (
 	"github.com/satori/go.uuid"
 )
 
-const (
-	tokenMaxAge = 120
-)
+type userAuthentication struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
 
 var cache = make(map[string]time.Time)
 
 func getSessionToken() string {
 	// Create a new random session token
 	sessionToken := uuid.NewV4().String()
-	expiresAt := time.Now().Add(tokenMaxAge * time.Second)
+	expiresAt := time.Now().Add(time.Duration(conf.Conf.TokenMaxAge) * time.Second)
 	// Set the token in the cache, along with the user whom it represents
 	// The token has an expiry time of tokenMaxAge seconds
 	cache[sessionToken] = expiresAt
@@ -28,24 +30,28 @@ func getSessionToken() string {
 }
 
 func authRequired(c *gin.Context) {
+	// if authentication is disabled continue with next handler
+	if !conf.Conf.Auth {
+		c.Next()
+		return
+	}
+
 	// Check if cookie is present
 	fmt.Println("authRequired: checking cookie...")
 	userToken, err := c.Cookie("session_token")
 	if err != nil {
 		if err == http.ErrNoCookie {
 			fmt.Println("authRequired: no cookie found")
-			//c.Redirect(http.StatusSeeOther, "/login")
-			/*c.JSON(http.StatusOK, &response{
-			Result: nil,
-			Err:    errAuthRequired.Error()})*/
-			//c.Abort()
-			c.AbortWithStatusJSON(http.StatusOK, &response{
-				Result: nil,
-				Err:    errAuthRequired.Error()})
+			c.AbortWithStatusJSON(http.StatusUnauthorized,
+				&response{
+					Result: nil,
+					Err:    errAuthRequired.Error()})
 			return
 		}
-		c.Writer.WriteHeader(http.StatusBadRequest)
-		c.Abort()
+		c.AbortWithStatusJSON(http.StatusBadRequest,
+			&response{
+				Result: nil,
+				Err:    errAuthRequired.Error()})
 		return
 	}
 	fmt.Println("authRequired: cookie successfully read")
@@ -55,11 +61,6 @@ func authRequired(c *gin.Context) {
 	if !ok {
 		// Session token is invalid
 		fmt.Println("authRequired: session token invalid")
-		//c.Redirect(http.StatusSeeOther, "/login")
-		/*c.JSON(http.StatusOK, &response{
-		Result: nil,
-		Err:    errAuthRequired.Error()})*/
-		//c.Abort()
 		c.AbortWithStatusJSON(http.StatusOK, &response{
 			Result: nil,
 			Err:    errAuthRequired.Error()})
@@ -69,20 +70,16 @@ func authRequired(c *gin.Context) {
 		// Session token is expired
 		fmt.Println("authRequired: session token expired")
 		delete(cache, userToken)
-		//c.Redirect(http.StatusSeeOther, "/login")
-		/*c.JSON(http.StatusOK, &response{
-		Result: nil,
-		Err:    errAuthRequired.Error()})*/
-		//c.Abort()
-		c.AbortWithStatusJSON(http.StatusOK, &response{
-			Result: nil,
-			Err:    errAuthRequired.Error()})
+		c.AbortWithStatusJSON(http.StatusUnauthorized,
+			&response{
+				Result: nil,
+				Err:    errAuthRequired.Error()})
 		return
 	}
 
 	// Refresh existing session token
 	delete(cache, userToken)
-	c.SetCookie("session_token", getSessionToken(), tokenMaxAge, "", "", false, false)
+	c.SetCookie("session_token", getSessionToken(), conf.Conf.TokenMaxAge, "", "", false, false)
 	fmt.Printf("authRequired: Cookie set")
 
 	// Pass on to the next-in-chain
@@ -91,21 +88,34 @@ func authRequired(c *gin.Context) {
 
 func logIn(c *gin.Context) {
 	// First get username and password from POST form
-	username := c.PostForm("username")
-	password := c.PostForm("password")
-
-	fmt.Printf("logIn: POST: u: '%v', p: '%v'\nConf: u: '%v', p: '%v'\n", username, password, conf.Conf.Username, conf.Conf.Password)
-
-	if username != conf.Conf.Username || password != conf.Conf.Password {
-		// Invalid credentials
-		fmt.Println("logIn: username or password missmatch!")
-		c.Writer.WriteHeader(http.StatusUnauthorized)
-		c.Writer.Write([]byte("Unauthorized"))
+	var userAuth userAuthentication
+	err := json.NewDecoder(c.Request.Body).Decode(&userAuth)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, &response{
+			Result: nil,
+			Err:    errInvJSONOnRequest.Error()})
 		return
 	}
 
-	c.SetCookie("session_token", getSessionToken(), tokenMaxAge, "", "", false, false)
-	c.Redirect(http.StatusSeeOther, "/")
+	fmt.Printf("logIn: POST: u: '%v', p: '%v'\nConf: u: '%v', p: '%v'\n", userAuth.Username, userAuth.Password, conf.Conf.Username, conf.Conf.Password)
+
+	if userAuth.Username != conf.Conf.Username || userAuth.Password != conf.Conf.Password {
+		// Invalid credentials
+		fmt.Println("logIn: username or password missmatch!")
+		c.AbortWithStatusJSON(http.StatusUnauthorized,
+			&response{
+				Result: nil,
+				Err:    errInvCredentials.Error()})
+		return
+	}
+
+	c.SetCookie("session_token", getSessionToken(), conf.Conf.TokenMaxAge, "", "", false, false)
+	//c.Redirect(http.StatusSeeOther, "/")
+}
+
+func checkToken(c *gin.Context) {
+	// TODO: implement token check functionality
+	c.JSON(http.StatusOK, nil)
 }
 
 func logOut(c *gin.Context) {
@@ -113,10 +123,16 @@ func logOut(c *gin.Context) {
 	userToken, err := c.Cookie("session_token")
 	if err != nil {
 		if err == http.ErrNoCookie {
-			c.Redirect(http.StatusUnauthorized, "/login")
+			c.AbortWithStatusJSON(http.StatusUnauthorized,
+				&response{
+					Result: nil,
+					Err:    errAuthRequired.Error()})
 			return
 		}
-		c.Writer.WriteHeader(http.StatusBadRequest)
+		c.AbortWithStatusJSON(http.StatusBadRequest,
+			&response{
+				Result: nil,
+				Err:    errAuthRequired.Error()})
 		return
 	}
 
@@ -124,5 +140,5 @@ func logOut(c *gin.Context) {
 		delete(cache, userToken)
 	}
 
-	c.Redirect(http.StatusOK, "/login")
+	c.JSON(http.StatusOK, nil)
 }

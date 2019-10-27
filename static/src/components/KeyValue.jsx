@@ -16,7 +16,6 @@ class KeyValue extends React.Component {
     constructor(props) {
 	super(props)
 	this.state = { dir: "", menus: [], list: [], setting: false, currentKey: "" }
-
     }
 
     _isRoot = () => {
@@ -57,13 +56,16 @@ class KeyValue extends React.Component {
 
     // change url
     _redirect = (dir) => {
-        window.location.hash = "#/kv" + dir
+	this.props.history.push("/kv" + dir)
     }
 
     _fullKey = (subKey) => (this._isRoot() ? "/" : this.state.dir + "/") + subKey;
 
     // callback for clicking KeyValueItem to enter a new dir
     _enter = (subKey) => {
+	console.log("KeyValue: _enter():")
+	console.log(subKey)
+	console.log(this._fullKey(subKey))
         this._redirect(this._fullKey(subKey))
     }
 
@@ -108,9 +110,10 @@ class KeyValue extends React.Component {
     }
 
     _getDirFromProps = () => {
-	let _path = "/"
-	if (typeof this.props.match.params.path !== "undefined") {
-	    _path = _path + this.props.match.params.path
+	let _path ="/"
+	if (typeof this.props.match.url !== "undefined") {
+	    _path = "/" + this.props.location.pathname.replace(/^\/kv/, "")
+	    _path = _path.replace(/^\/+/, "/")
 	}
 	return _path
     }

@@ -47,20 +47,20 @@ func etcdWrapper(h etcdHandler) e3chHandler {
 func InitRouters(g *gin.Engine, config *conf.Config, e3chClt *client.EtcdHRCHYClient) {
 
 	g.Static("/public", "./static/dist")
-
-	private := g.Group("/")
-	if conf.Conf.Auth {
-		g.GET("/login", func(c *gin.Context) {
-			c.File("./static/dist/login.html")
-		})
-		g.POST("/login", logIn)
-		g.GET("/logout", logOut)
-		private.Use(authRequired)
-	}
-
-	private.GET("/", func(c *gin.Context) {
+	g.GET("/", func(c *gin.Context) {
 		c.File("./static/dist/index.html")
 	})
+
+	private := g.Group("/")
+	private.Use(authRequired)
+
+	// login route cannot be protected by withAuth
+	g.POST("/login", logIn)
+
+	// checkToken and logout are protected by withAuth, so
+	// only authenticated users can use these
+	private.GET("/checkToken", checkToken)
+	private.GET("/logout", logOut)
 
 	e3chGroup := withE3chGroup(e3chClt, config)
 
