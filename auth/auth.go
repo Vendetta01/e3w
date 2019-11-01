@@ -1,17 +1,19 @@
-package routers
+package auth
 
 import (
 	"encoding/json"
 	"fmt"
+	//"log"
 	"net/http"
 	"time"
 
 	"github.com/VendettA01/e3w/conf"
+	"github.com/VendettA01/e3w/resp"
 	"github.com/gin-gonic/gin"
 	"github.com/satori/go.uuid"
 )
 
-type userAuthentication struct {
+type userCredentials struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
@@ -29,7 +31,7 @@ func getSessionToken() string {
 	return sessionToken
 }
 
-func authRequired(c *gin.Context) {
+func AuthRequired(c *gin.Context) {
 	// if authentication is disabled continue with next handler
 	if !conf.Conf.Auth {
 		c.Next()
@@ -43,13 +45,13 @@ func authRequired(c *gin.Context) {
 		if err == http.ErrNoCookie {
 			fmt.Println("authRequired: no cookie found")
 			c.AbortWithStatusJSON(http.StatusUnauthorized,
-				&response{
+				&resp.Response{
 					Result: nil,
 					Err:    errAuthRequired.Error()})
 			return
 		}
 		c.AbortWithStatusJSON(http.StatusBadRequest,
-			&response{
+			&resp.Response{
 				Result: nil,
 				Err:    errAuthRequired.Error()})
 		return
@@ -61,7 +63,7 @@ func authRequired(c *gin.Context) {
 	if !ok {
 		// Session token is invalid
 		fmt.Println("authRequired: session token invalid")
-		c.AbortWithStatusJSON(http.StatusOK, &response{
+		c.AbortWithStatusJSON(http.StatusUnauthorized, &resp.Response{
 			Result: nil,
 			Err:    errAuthRequired.Error()})
 		return
@@ -71,7 +73,7 @@ func authRequired(c *gin.Context) {
 		fmt.Println("authRequired: session token expired")
 		delete(cache, userToken)
 		c.AbortWithStatusJSON(http.StatusUnauthorized,
-			&response{
+			&resp.Response{
 				Result: nil,
 				Err:    errAuthRequired.Error()})
 		return
@@ -80,57 +82,66 @@ func authRequired(c *gin.Context) {
 	// Refresh existing session token
 	delete(cache, userToken)
 	c.SetCookie("session_token", getSessionToken(), conf.Conf.TokenMaxAge, "", "", false, false)
-	fmt.Printf("authRequired: Cookie set")
+	fmt.Println("authRequired: Cookie set")
 
 	// Pass on to the next-in-chain
 	c.Next()
 }
 
-func logIn(c *gin.Context) {
+func LogIn(c *gin.Context) {
 	// First get username and password from POST form
-	var userAuth userAuthentication
-	err := json.NewDecoder(c.Request.Body).Decode(&userAuth)
+	var userCreds userCredentials
+	err := json.NewDecoder(c.Request.Body).Decode(&userCreds)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, &response{
+		c.AbortWithStatusJSON(http.StatusUnauthorized, &resp.Response{
 			Result: nil,
 			Err:    errInvJSONOnRequest.Error()})
 		return
 	}
 
-	fmt.Printf("logIn: POST: u: '%v', p: '%v'\nConf: u: '%v', p: '%v'\n", userAuth.Username, userAuth.Password, conf.Conf.Username, conf.Conf.Password)
+	fmt.Printf("logIn: POST: u: '%v', p: '%v'\n", userCreds.Username, userCreds.Password)
 
-	if userAuth.Username != conf.Conf.Username || userAuth.Password != conf.Conf.Password {
+	loginSucessful, err := canLogIn(userCreds)
+	if err != nil {
+		// Some internal error occured, pass it on
+		c.AbortWithStatusJSON(http.StatusUnauthorized, &resp.Response{
+			Result: nil,
+			Err:    err.Error()})
+		return
+	}
+	if !loginSucessful {
 		// Invalid credentials
 		fmt.Println("logIn: username or password missmatch!")
 		c.AbortWithStatusJSON(http.StatusUnauthorized,
-			&response{
+			&resp.Response{
 				Result: nil,
 				Err:    errInvCredentials.Error()})
 		return
 	}
 
 	c.SetCookie("session_token", getSessionToken(), conf.Conf.TokenMaxAge, "", "", false, false)
-	//c.Redirect(http.StatusSeeOther, "/")
 }
 
-func checkToken(c *gin.Context) {
-	// TODO: implement token check functionality
+func CheckToken(c *gin.Context) {
+	// The way the route "/checkToken" is designed, the validity will
+	// be checked before this handler is called. If we arrive here
+	// it means that authentication was successful
 	c.JSON(http.StatusOK, nil)
 }
 
-func logOut(c *gin.Context) {
+func LogOut(c *gin.Context) {
 	// Check if cookie is present
 	userToken, err := c.Cookie("session_token")
 	if err != nil {
 		if err == http.ErrNoCookie {
 			c.AbortWithStatusJSON(http.StatusUnauthorized,
-				&response{
+				&resp.Response{
 					Result: nil,
 					Err:    errAuthRequired.Error()})
 			return
 		}
 		c.AbortWithStatusJSON(http.StatusBadRequest,
-			&response{
+			&resp.Response{
 				Result: nil,
 				Err:    errAuthRequired.Error()})
 		return

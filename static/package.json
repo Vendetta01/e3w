@@ -21,7 +21,7 @@
     "webpack-visualizer-plugin": "^0.1.11"
   },
   "dependencies": {
-    "antd": "4.0.0-alpha.7",
+    "antd": "^3.0.0",
     "create-react-class": "^15.6.3",
     "react": "^16.10.2",
     "react-dom": "^16.10.2",

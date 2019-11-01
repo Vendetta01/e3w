@@ -1,8 +1,12 @@
 package routers
 
 import (
+	"log"
+
+	"github.com/VendettA01/e3w/auth"
 	"github.com/VendettA01/e3w/conf"
 	"github.com/VendettA01/e3w/e3ch"
+	"github.com/VendettA01/e3w/resp"
 	"github.com/coreos/etcd/clientv3"
 	"github.com/gin-gonic/gin"
 	"github.com/soyking/e3ch"
@@ -15,10 +19,10 @@ const (
 
 type e3chHandler func(*gin.Context, *client.EtcdHRCHYClient) (interface{}, error)
 
-type groupHandler func(e3chHandler) respHandler
+type groupHandler func(e3chHandler) resp.RespHandler
 
 func withE3chGroup(e3chClt *client.EtcdHRCHYClient, config *conf.Config) groupHandler {
-	return func(h e3chHandler) respHandler {
+	return func(h e3chHandler) resp.RespHandler {
 		return func(c *gin.Context) (interface{}, error) {
 			clt := e3chClt
 			if config.EtcdAuth {
@@ -45,6 +49,9 @@ func etcdWrapper(h etcdHandler) e3chHandler {
 }
 
 func InitRouters(g *gin.Engine, config *conf.Config, e3chClt *client.EtcdHRCHYClient) {
+	if err := auth.InitAuthFromConf(); err != nil {
+		log.Fatalf("ERROR: %s", err.Error())
+	}
 
 	g.Static("/public", "./static/dist")
 	g.GET("/", func(c *gin.Context) {
@@ -52,41 +59,41 @@ func InitRouters(g *gin.Engine, config *conf.Config, e3chClt *client.EtcdHRCHYCl
 	})
 
 	private := g.Group("/")
-	private.Use(authRequired)
+	private.Use(auth.AuthRequired)
 
 	// login route cannot be protected by withAuth
-	g.POST("/login", logIn)
+	g.POST("/login", auth.LogIn)
 
 	// checkToken and logout are protected by withAuth, so
 	// only authenticated users can use these
-	private.GET("/checkToken", checkToken)
-	private.GET("/logout", logOut)
+	private.GET("/checkToken", auth.CheckToken)
+	private.GET("/logout", auth.LogOut)
 
 	e3chGroup := withE3chGroup(e3chClt, config)
 
 	// key/value actions
-	private.GET("/kv/*key", resp(e3chGroup(getKeyHandler)))
-	private.POST("/kv/*key", (resp(e3chGroup(postKeyHandler))))
-	private.PUT("/kv/*key", resp(e3chGroup(putKeyHandler)))
-	private.DELETE("/kv/*key", resp(e3chGroup(delKeyHandler)))
+	private.GET("/kv/*key", resp.Resp(e3chGroup(getKeyHandler)))
+	private.POST("/kv/*key", resp.Resp(e3chGroup(postKeyHandler)))
+	private.PUT("/kv/*key", resp.Resp(e3chGroup(putKeyHandler)))
+	private.DELETE("/kv/*key", resp.Resp(e3chGroup(delKeyHandler)))
 
 	// members actions
-	private.GET("/members", resp(e3chGroup(etcdWrapper(getMembersHandler))))
+	private.GET("/members", resp.Resp(e3chGroup(etcdWrapper(getMembersHandler))))
 
 	// roles actions
-	private.GET("/roles", resp(e3chGroup(etcdWrapper(getRolesHandler))))
-	private.POST("/role", resp(e3chGroup(etcdWrapper(createRoleHandler))))
-	private.GET("/role/:name", resp(e3chGroup(getRolePermsHandler)))
-	private.DELETE("/role/:name", resp(e3chGroup(etcdWrapper(deleteRoleHandler))))
-	private.POST("/role/:name/permission", resp(e3chGroup(createRolePermHandler)))
-	private.DELETE("/role/:name/permission", resp(e3chGroup(deleteRolePermHandler)))
+	private.GET("/roles", resp.Resp(e3chGroup(etcdWrapper(getRolesHandler))))
+	private.POST("/role", resp.Resp(e3chGroup(etcdWrapper(createRoleHandler))))
+	private.GET("/role/:name", resp.Resp(e3chGroup(getRolePermsHandler)))
+	private.DELETE("/role/:name", resp.Resp(e3chGroup(etcdWrapper(deleteRoleHandler))))
+	private.POST("/role/:name/permission", resp.Resp(e3chGroup(createRolePermHandler)))
+	private.DELETE("/role/:name/permission", resp.Resp(e3chGroup(deleteRolePermHandler)))
 
 	// users actions
-	private.GET("/users", resp(e3chGroup(etcdWrapper(getUsersHandler))))
-	private.POST("/user", resp(e3chGroup(etcdWrapper(createUserHandler))))
-	private.GET("/user/:name", resp(e3chGroup(etcdWrapper(getUserRolesHandler))))
-	private.DELETE("/user/:name", resp(e3chGroup(etcdWrapper(deleteUserHandler))))
-	private.PUT("/user/:name/password", resp(e3chGroup(etcdWrapper(setUserPasswordHandler))))
-	private.PUT("/user/:name/role/:role", resp(e3chGroup(etcdWrapper(grantUserRoleHandler))))
-	private.DELETE("/user/:name/role/:role", resp(e3chGroup(etcdWrapper(revokeUserRoleHandler))))
+	private.GET("/users", resp.Resp(e3chGroup(etcdWrapper(getUsersHandler))))
+	private.POST("/user", resp.Resp(e3chGroup(etcdWrapper(createUserHandler))))
+	private.GET("/user/:name", resp.Resp(e3chGroup(etcdWrapper(getUserRolesHandler))))
+	private.DELETE("/user/:name", resp.Resp(e3chGroup(etcdWrapper(deleteUserHandler))))
+	private.PUT("/user/:name/password", resp.Resp(e3chGroup(etcdWrapper(setUserPasswordHandler))))
+	private.PUT("/user/:name/role/:role", resp.Resp(e3chGroup(etcdWrapper(grantUserRoleHandler))))
+	private.DELETE("/user/:name/role/:role", resp.Resp(e3chGroup(etcdWrapper(revokeUserRoleHandler))))
 }

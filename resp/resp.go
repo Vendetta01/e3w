@@ -1,21 +1,21 @@
-package routers
+package resp
 
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
-type response struct {
+type Response struct {
 	Result interface{} `json:"result"`
 	Err    string      `json:"err"`
 }
 
-type respHandler func(c *gin.Context) (interface{}, error)
+type RespHandler func(c *gin.Context) (interface{}, error)
 
-func resp(handler respHandler) gin.HandlerFunc {
+func Resp(handler RespHandler) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		result, err := handler(c)
-		r := &response{}
+		r := &Response{}
 		if err != nil {
 			r.Err = err.Error()
 		} else {
