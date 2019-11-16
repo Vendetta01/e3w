@@ -1,155 +1,106 @@
 package auth
 
 import (
-	"encoding/json"
-	"fmt"
-	//"log"
-	"net/http"
-	"time"
+	"log"
 
-	"github.com/VendettA01/e3w/conf"
-	"github.com/VendettA01/e3w/resp"
-	"github.com/gin-gonic/gin"
-	"github.com/satori/go.uuid"
+	"github.com/pkg/errors"
 )
 
-type userCredentials struct {
+// UserCredentials TODO
+type UserCredentials struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
 
-var cache = make(map[string]time.Time)
-
-func getSessionToken() string {
-	// Create a new random session token
-	sessionToken := uuid.NewV4().String()
-	expiresAt := time.Now().Add(time.Duration(conf.Conf.TokenMaxAge) * time.Second)
-	// Set the token in the cache, along with the user whom it represents
-	// The token has an expiry time of tokenMaxAge seconds
-	cache[sessionToken] = expiresAt
-
-	return sessionToken
+// UserAuthentication TODO
+//go:generate mockgen -destination mocks/UserAuthentication.go github.com/VendettA01/e3w/auth UserAuthentication
+type UserAuthentication interface {
+	login(UserCredentials) (bool, error)
+	GetName() string
+	TestConfig() error
 }
 
-func AuthRequired(c *gin.Context) {
-	// if authentication is disabled continue with next handler
-	if !conf.Conf.Auth {
-		c.Next()
-		return
-	}
+// UserAuthentications TODO
+//go:generate mockgen -destination mocks/UserAuthentications.go github.com/VendettA01/e3w/auth UserAuthentications
+type UserAuthentications struct {
+	// Is authentication enabled
+	IsEnabled bool
+	// AuthMethods contains map of all registered authentication methods
+	AuthMethods map[string]UserAuthentication
+}
 
-	// Check if cookie is present
-	fmt.Println("authRequired: checking cookie...")
-	userToken, err := c.Cookie("session_token")
-	if err != nil {
-		if err == http.ErrNoCookie {
-			fmt.Println("authRequired: no cookie found")
-			c.AbortWithStatusJSON(http.StatusUnauthorized,
-				&resp.Response{
-					Result: nil,
-					Err:    errAuthRequired.Error()})
-			return
+// NewUserAuths returns a new UserAuthentications struct
+// A number of userAuthentication structs can be provided to initialize
+// the returned struct.
+// TODO: These auth methods are not initialized/have to be initialized before.
+// This is contrary to the Register method and should be changed!
+func NewUserAuths(userAuths ...UserAuthentication) (*UserAuthentications, error) {
+	authMethods := make(map[string]UserAuthentication)
+	isEnabled := true
+
+	for _, authMethod := range userAuths {
+		_, ok := authMethods[authMethod.GetName()]
+		if ok {
+			return nil, errAuthNameNotUnique
 		}
-		c.AbortWithStatusJSON(http.StatusBadRequest,
-			&resp.Response{
-				Result: nil,
-				Err:    errAuthRequired.Error()})
-		return
-	}
-	fmt.Println("authRequired: cookie successfully read")
-
-	// Check provided session token for validity
-	expiresAt, ok := cache[userToken]
-	if !ok {
-		// Session token is invalid
-		fmt.Println("authRequired: session token invalid")
-		c.AbortWithStatusJSON(http.StatusUnauthorized, &resp.Response{
-			Result: nil,
-			Err:    errAuthRequired.Error()})
-		return
-	}
-	if expiresAt.Before(time.Now()) {
-		// Session token is expired
-		fmt.Println("authRequired: session token expired")
-		delete(cache, userToken)
-		c.AbortWithStatusJSON(http.StatusUnauthorized,
-			&resp.Response{
-				Result: nil,
-				Err:    errAuthRequired.Error()})
-		return
+		authMethods[authMethod.GetName()] = authMethod
 	}
 
-	// Refresh existing session token
-	delete(cache, userToken)
-	c.SetCookie("session_token", getSessionToken(), conf.Conf.TokenMaxAge, "", "", false, false)
-	fmt.Println("authRequired: Cookie set")
+	if len(authMethods) < 1 {
+		isEnabled = false
+	}
 
-	// Pass on to the next-in-chain
-	c.Next()
+	return &UserAuthentications{
+		IsEnabled:   isEnabled,
+		AuthMethods: authMethods,
+	}, nil
 }
 
-func LogIn(c *gin.Context) {
-	// First get username and password from POST form
-	var userCreds userCredentials
-	err := json.NewDecoder(c.Request.Body).Decode(&userCreds)
+// RegisterMethod adds an authentication method to the struct UserAuthentications
+// It expects a user authentication method (UserAuthentication) and an initialization
+// function that fills the UserAuthentication struct fields. The function returns
+// true or false depending on whether the method was successfuly registered and
+// an error code if something went wrong. It is up to the caller to decide how to
+// proceed with a faulty registration.
+func (userAuths *UserAuthentications) RegisterMethod(userAuth UserAuthentication,
+	init func(UserAuthentication) error) (bool, error) {
+	_, ok := userAuths.AuthMethods[userAuth.GetName()]
+	if ok {
+		return false, errAuthNameNotUnique
+	}
+
+	// init method
+	err := init(userAuth)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, &resp.Response{
-			Result: nil,
-			Err:    errInvJSONOnRequest.Error()})
-		return
+		return false, errors.Wrap(err, "init() failed")
 	}
 
-	fmt.Printf("logIn: POST: u: '%v', p: '%v'\n", userCreds.Username, userCreds.Password)
+	userAuths.AuthMethods[userAuth.GetName()] = userAuth
+	userAuths.IsEnabled = true
 
-	loginSucessful, err := canLogIn(userCreds)
-	if err != nil {
-		// Some internal error occured, pass it on
-		c.AbortWithStatusJSON(http.StatusUnauthorized, &resp.Response{
-			Result: nil,
-			Err:    err.Error()})
-		return
-	}
-	if !loginSucessful {
-		// Invalid credentials
-		fmt.Println("logIn: username or password missmatch!")
-		c.AbortWithStatusJSON(http.StatusUnauthorized,
-			&resp.Response{
-				Result: nil,
-				Err:    errInvCredentials.Error()})
-		return
-	}
-
-	c.SetCookie("session_token", getSessionToken(), conf.Conf.TokenMaxAge, "", "", false, false)
+	return true, nil
 }
 
-func CheckToken(c *gin.Context) {
-	// The way the route "/checkToken" is designed, the validity will
-	// be checked before this handler is called. If we arrive here
-	// it means that authentication was successful
-	c.JSON(http.StatusOK, nil)
-}
-
-func LogOut(c *gin.Context) {
-	// Check if cookie is present
-	userToken, err := c.Cookie("session_token")
-	if err != nil {
-		if err == http.ErrNoCookie {
-			c.AbortWithStatusJSON(http.StatusUnauthorized,
-				&resp.Response{
-					Result: nil,
-					Err:    errAuthRequired.Error()})
-			return
+// CanLogIn verifies if the provided credentials are valid
+// It calls login() on all registered authentication methods and returns true
+// as soon as the first one succeeds. If all attempts fail false is returned along
+// with the last error code != nil
+func (userAuths *UserAuthentications) CanLogIn(userCreds UserCredentials) (bool, error) {
+	log.Printf("DEBUG: canLogIn(): userCreds: %+v\n", userCreds)
+	var lastErr error = nil
+	if len(userAuths.AuthMethods) < 1 {
+		return false, errNoActiveAuth
+	}
+	for _, authMethod := range userAuths.AuthMethods {
+		authOK, err := authMethod.login(userCreds)
+		log.Printf("DEBUG: CanLogIn(): authMethod: %+v; authOK: %v; err: %v",
+			authMethod, authOK, err)
+		if err != nil {
+			lastErr = err
 		}
-		c.AbortWithStatusJSON(http.StatusBadRequest,
-			&resp.Response{
-				Result: nil,
-				Err:    errAuthRequired.Error()})
-		return
+		if authOK {
+			return true, nil
+		}
 	}
-
-	if _, ok := cache[userToken]; ok {
-		delete(cache, userToken)
-	}
-
-	c.JSON(http.StatusOK, nil)
+	return false, lastErr
 }

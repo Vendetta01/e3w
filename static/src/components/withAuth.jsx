@@ -5,8 +5,28 @@ function withAuth(ComponentToProtect) {
     return class extends React.Component {
 	constructor() {
 	    super()
-	    this.state = { loading: true, redirect: false }
+	    this.state = { loading: true, redirect: false , url: "" }
 	}
+
+	/*static getDerivedStateFromProps(props, state) {
+	    var new_url = props.location.pathname
+	    if (state.url != new_url) {
+		fetch('/checkToken')
+		.then(res => {
+		    if (res.status === 200) {
+			return { loading: false, redirect: false, url: new_url }
+		    } else {
+			const error = new Error(res.error)
+			throw error
+		    }
+		})
+		.catch(err => {
+		    console.log(err)
+		    return { loading: false, redirect: true, url: new_url }
+		})
+		//return { loading: false, redirect: true, url: new_url }
+	    }
+	}*/
 
 	componentDidMount() {
 	    fetch('/checkToken')

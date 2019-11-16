@@ -35,9 +35,9 @@ RUN npm --registry=https://registry.npm.taobao.org \
 --disturl=https://npm.taobao.org/mirrors/node \
 --userconfig=$HOME/.cnpmrc install && npm run publish
 
-FROM alpine:edge
+FROM confd:latest
 
-RUN apk --no-cache add bash
+RUN apk --no-cache add bash supervisor
 RUN mkdir -p /app/static/dist /app/conf
 COPY --from=backend /go/src/github.com/VendettA01/e3w/e3w /app
 COPY --from=frontend /app/dist /app/static/dist
@@ -45,6 +45,12 @@ COPY --from=backend /go/src/github.com/VendettA01/e3w/conf/config.default.ini /a
 COPY --from=backend /tmp/wait-for-it/wait-for-it.sh /usr/bin/wait-for-it.sh
 RUN chmod 755 /usr/bin/wait-for-it.sh
 COPY scripts/* /usr/bin/
+
+
+COPY etc/confd/conf.d/e3w.config.toml /etc/confd/conf.d/
+COPY etc/confd/templates/e3w.config.ini.tmpl /etc/confd/templates/
+COPY etc/supervisor/conf.d/supervisord.conf /etc/supervisor/conf.d/
+
 EXPOSE 8080
 WORKDIR /app
 

@@ -1,44 +1,41 @@
 package auth
 
 import (
-	"log"
-	//"github.com/VendettA01/e3w/conf"
-	//"gopkg.in/ini.v1"
+	"github.com/pkg/errors"
 )
 
-type AuthLocal struct {
-	Username string `ini:"username"`
-	Password string `ini:"password"`
+// Local TODO
+type Local struct {
+	Username           string `ini:"username"`
+	Password           string `ini:"password"`
+	AllowEmptyPassword bool   `ini:"allowemptypassword"`
 }
 
-func (l *AuthLocal) init() bool {
-	return initAuthModule(l)
+// NewLocal TODO
+func NewLocal() (*Local, error) {
+	return new(Local), nil
 }
 
-func (l AuthLocal) login(userCreds userCredentials) bool {
+func (l Local) login(userCreds UserCredentials) (bool, error) {
 	if userCreds.Username == l.Username &&
 		userCreds.Password == l.Password {
-		return true
+		return true, nil
 	}
-	return false
+	return false, nil
 }
 
-func (l AuthLocal) getName() string {
+// GetName TODO
+func (l Local) GetName() string {
 	return "local"
 }
 
-func (l AuthLocal) testConfig() bool {
+// TestConfig TODO
+func (l Local) TestConfig() error {
 	if l.Username == "" {
-		log.Printf("ERROR: auth_local: testConfig(): username is empty")
-		return false
+		return errors.New("auth_local: testConfig(): username is empty")
 	}
-	if l.Password == "" {
-		log.Printf("WARN: auth_local: password is empty, this is not recommended")
+	if l.Password == "" || l.AllowEmptyPassword {
+		return errors.New("auth_local: testConfig(): password is empty and not allowed")
 	}
-	return true
-}
-
-func init() {
-	authImpl := new(AuthLocal)
-	authImpls[authImpl.getName()] = authImpl
+	return nil
 }

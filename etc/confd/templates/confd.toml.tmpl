@@ -1,0 +1,78 @@
+{{- $key_base := "/conf/confd/paperless"}}
+
+{{- $key := print $key_base "/backend"}}
+{{- if exists $key}}
+backend = "{{getv $key}}"
+{{- end}}
+
+{{- $key := print $key_base "/client_cakeys"}}
+{{- if exists $key}}
+client_cakeys = "{{getv $key}}"
+{{- end}}
+
+{{- $key := print $key_base "/client_cert"}}
+{{- if exists $key}}
+client_cert = "{{getv $key}}"
+{{- end}}
+
+{{- $key := print $key_base "/client_key"}}
+{{- if exists $key}}
+client_key = "{{getv $key}}"
+{{- end}}
+
+{{- $key := print $key_base "/nodes"}}
+{{- $map := ls $key}}
+{{- if $map}}
+nodes = [
+{{- end}}
+{{- range $map}}
+    "{{print $key "/" . | getv}}",
+{{- end}}
+{{- if $map}}
+]
+{{- end}}
+
+{{- $key := print $key_base "/scheme"}}
+{{- if exists $key}}
+scheme = "{{getv $key}}"
+{{- end}}
+
+{{- $key := print $key_base "/srv_domain"}}
+{{- if exists $key}}
+srv_domain = "{{getv $key}}"
+{{- end}}
+
+{{- $key := print $key_base "/watch"}}
+watch = 
+{{- if exists $key}}
+  {{- if getv $key | parseBool}}
+    {{- " true"}}
+  {{- else}}
+    {{- " false"}}
+  {{- end}}
+{{- else}}
+  {{- " false"}}
+{{- end}}
+
+{{- $key := print $key_base "/onetime"}}
+onetime = 
+{{- if exists $key}}
+  {{- if getv $key | parseBool}}
+    {{- " true"}}
+  {{- else}}
+    {{- " false"}}
+  {{- end}}
+  {{- else}}
+    {{- " false"}}
+{{- end}}
+
+{{- $key := print $key_base "/interval"}}
+{{- if exists $key}}
+interval = {{getv $key}}
+{{- end}}
+
+{{- $key := print $key_base "/log_level"}}
+{{- if exists $key}}
+log-level = "{{getv $key}}"
+{{- end}}
+

@@ -1,0 +1,70 @@
+{{- $key_base := "/conf/e3w"}}
+[app]
+port=8080
+{{- $key := print $key_base "/app/auth"}}
+{{- if exists $key }}
+    {{- if getv $key | parseBool}}
+	{{- print "auth=true"}}
+    {{- else}}
+	{{- print "auth=false"}}
+    {{- end}}
+{{- end}}
+{{- $key := print $key_base "/app/cert_file"}}
+cert_file={{getv $key}}
+{{- $key := print $key_base "/app/key_file"}}
+key_file={{getv $key}}
+{{- $key := print $key_base "/app/tokenmaxage"}}
+{{- if exists $key}}
+tokenmaxage={{getv $key}}
+{{- end}}
+
+[etcd]
+root_key=e3w_test
+dir_value=
+addr=etcd:2379,etcd:22379,etcd:32379
+username=
+password=
+cert_file=
+key_file=
+ca_file=
+
+{{- $key := print $key_base "/auth/local"}}
+{{- if exists $key}}
+[auth:local]
+{{- $key := print $key_base "/auth/local/username"}}
+username={{getv $key}}
+{{- $key := print $key_base "/auth/local/password"}}
+password={{getv $key}}
+{{- end}}
+
+{{- $key := print $key_base "/auth/ldap"}}
+{{- if exists $key}}
+[auth:ldap]
+{{- $key := print $key_base "/auth/ldap/usetls"}}
+{{- if exists $key}}
+    {{- if getv $key | parseBool}}
+usetls=true
+    {{- else}}
+usetls=false
+{{- end}}
+{{- $key := print $key_base "/auth/ldap/tlsinsecureskipverify"}}
+{{- if exists $key}}
+    {{- if getv $key | parseBool}}
+tlsinsecureskipverify=true
+    {{- else}}
+tlsinsecureskipverify=false
+{{- end}}
+{{- $key := print $key_base "/auth/local/password"}}
+password={{getv $key}}
+{{- end}}
+
+;[auth:ldap]
+;binduserdn=cn=user_auth,ou=system,dc=example,dc=com
+;bindpw=secretbindpw
+;uri=ldap.example.com:636
+;usetls=true
+;tlsinsecureskipverify=false
+;cacertfile=certs/rootCA.crt
+;basedn=ou=users,dc=example,dc=com
+;usersearchfilter=(&(objectClass=organizationalPerson)(uid=%s))
+

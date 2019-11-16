@@ -1,0 +1,12 @@
+[template]
+src = "e3w.config.ini.tmpl"
+dest = "/etc/e3w.config.ini"
+keys = [
+    "/conf/dnsmasq/servers",
+    "/conf/dnsmasq/addresses",
+    "/conf/dnsmasq/advanced_config",
+    "/conf/dnsmasq/no_resolv",
+    "/conf/dnsmasq/log_queries",
+    "/conf/dnsmasq/dns_forward_max",
+]
+reload_cmd = "supervisorctl restart e3w"

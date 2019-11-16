@@ -1,0 +1,16 @@
+[template]
+src = "confd.toml.tmpl"
+dest = "/etc/confd/confd.toml"
+keys = [
+    "/conf/confd/dnsmasq/backend",
+    "/conf/confd/dnsmasq/client_cakeys",
+    "/conf/confd/dnsmasq/client_cert",
+    "/conf/confd/dnsmasq/client_key",
+    "/conf/confd/dnsmasq/nodes",
+    "/conf/confd/dnsmasq/scheme",
+    "/conf/confd/dnsmasq/srv_domain",
+    "/conf/confd/dnsmasq/watch",
+    "/conf/confd/dnsmasq/onetime",
+    "/conf/confd/dnsmasq/interval",
+]
+reload_cmd = "supervisorctl restart dnsmasq"

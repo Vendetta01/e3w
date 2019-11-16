@@ -2,12 +2,15 @@ package e3ch
 
 import (
 	"crypto/tls"
+
 	"github.com/VendettA01/e3w/conf"
 	"github.com/coreos/etcd/clientv3"
 	"github.com/coreos/etcd/pkg/transport"
-	"github.com/soyking/e3ch"
+	client "github.com/soyking/e3ch"
 )
 
+// NewE3chClient TODO
+//go:generate mockgen -destination mocks/clientv3.go github.com/coreos/etcd/clientv3 EtcdHRCHYClient
 func NewE3chClient(config *conf.Config) (*client.EtcdHRCHYClient, error) {
 	var tlsConfig *tls.Config
 	var err error

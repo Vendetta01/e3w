@@ -3,9 +3,14 @@ package conf
 import (
 	"flag"
 	"fmt"
+	"log"
+
+	"github.com/VendettA01/e3w/auth"
+	"github.com/pkg/errors"
 	"gopkg.in/ini.v1"
 )
 
+// Config TODO
 type Config struct {
 	ConfigFile       string
 	Port             string
@@ -28,6 +33,7 @@ type Config struct {
 	PrintVer         bool
 }
 
+// Conf TODO
 var Conf Config
 
 func init() {
@@ -51,6 +57,7 @@ func init() {
 	flag.BoolVar(&Conf.PrintVer, "version", false, "Print version")
 }
 
+// InitConfig TODO
 func InitConfig() error {
 	cfg, err := ini.ShadowLoad(Conf.ConfigFile)
 	if err != nil {
@@ -81,4 +88,25 @@ func InitConfig() error {
 	Conf.EtcdCAFile = etcdSec.Key("ca_file").Value()
 
 	return nil
+}
+
+// InitAuthFromINI TODO
+func InitAuthFromINI(userAuth auth.UserAuthentication, iniURL string) error {
+	cfg, err := ini.Load(iniURL)
+	if err != nil {
+		return errors.Wrapf(err, "%s: ini.Load(iniURL) failed", userAuth.GetName())
+	}
+
+	secName := fmt.Sprintf("auth:%s", userAuth.GetName())
+	sec := cfg.Section(secName)
+	if sec == nil {
+		return errors.New(fmt.Sprintf("%s: section: %s: section not found", userAuth.GetName(), secName))
+	}
+	err = sec.MapTo(userAuth)
+	if err != nil {
+		return errors.New(fmt.Sprintf("%s: MapTo(userAuth) failed", userAuth.GetName()))
+	}
+	log.Printf("DEBUG: initAuthModule(): config processed for: %s: %+v", userAuth.GetName(), userAuth)
+
+	return userAuth.TestConfig()
 }

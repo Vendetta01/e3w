@@ -1,20 +1,18 @@
 package routers
 
 import (
-	"log"
-
 	"github.com/VendettA01/e3w/auth"
 	"github.com/VendettA01/e3w/conf"
 	"github.com/VendettA01/e3w/e3ch"
 	"github.com/VendettA01/e3w/resp"
 	"github.com/coreos/etcd/clientv3"
 	"github.com/gin-gonic/gin"
-	"github.com/soyking/e3ch"
+	client "github.com/soyking/e3ch"
 )
 
 const (
-	ETCD_USERNAME_HEADER = "X-Etcd-Username"
-	ETCD_PASSWORD_HEADER = "X-Etcd-Password"
+	etcdUsernameHeader = "X-Etcd-Username"
+	etcdPasswordHeader = "X-Etcd-Password"
 )
 
 type e3chHandler func(*gin.Context, *client.EtcdHRCHYClient) (interface{}, error)
@@ -27,8 +25,8 @@ func withE3chGroup(e3chClt *client.EtcdHRCHYClient, config *conf.Config) groupHa
 			clt := e3chClt
 			if config.EtcdAuth {
 				var err error
-				username := c.Request.Header.Get(ETCD_USERNAME_HEADER)
-				password := c.Request.Header.Get(ETCD_PASSWORD_HEADER)
+				username := c.Request.Header.Get(etcdUsernameHeader)
+				password := c.Request.Header.Get(etcdPasswordHeader)
 				clt, err = e3ch.CloneE3chClient(username, password, e3chClt)
 				if err != nil {
 					return nil, err
@@ -48,26 +46,28 @@ func etcdWrapper(h etcdHandler) e3chHandler {
 	}
 }
 
-func InitRouters(g *gin.Engine, config *conf.Config, e3chClt *client.EtcdHRCHYClient) {
-	if err := auth.InitAuthFromConf(); err != nil {
-		log.Fatalf("ERROR: %s", err.Error())
-	}
-
+// InitRouters initialize all served routes
+// This function sets up the routes for the REST API as well as the serving of the
+// static files (for the reactive web app)
+func InitRouters(g *gin.Engine, config *conf.Config, e3chClt *client.EtcdHRCHYClient,
+	userAuths *auth.UserAuthentications) {
 	g.Static("/public", "./static/dist")
 	g.GET("/", func(c *gin.Context) {
 		c.File("./static/dist/index.html")
 	})
 
 	private := g.Group("/")
-	private.Use(auth.AuthRequired)
+	if userAuths.IsEnabled {
+		private.Use(authRequired(userAuths))
+	}
 
 	// login route cannot be protected by withAuth
-	g.POST("/login", auth.LogIn)
+	g.POST("/login", logIn(userAuths))
 
 	// checkToken and logout are protected by withAuth, so
 	// only authenticated users can use these
-	private.GET("/checkToken", auth.CheckToken)
-	private.GET("/logout", auth.LogOut)
+	private.GET("/checkToken", checkToken)
+	private.GET("/logout", logOut)
 
 	e3chGroup := withE3chGroup(e3chClt, config)
 
