@@ -9,6 +9,27 @@ import (
 	"gopkg.in/ini.v1"
 )
 
+// stringSliceFlag TODO
+type stringSliceFlag []string
+
+func (ssf *stringSliceFlag) String() string {
+	ret := "["
+	for i, s := range *ssf {
+		if i != 0 {
+			ret += ", "
+		}
+		ret += s
+	}
+	ret += "]"
+	return ret
+}
+
+// Set TODO
+func (ssf *stringSliceFlag) Set(value string) error {
+	*ssf = append(*ssf, value)
+	return nil
+}
+
 // AppConfig contains the application configuration
 type AppConfig struct {
 	Port        string `ini:"port"`
@@ -23,13 +44,14 @@ type EtcdConfig struct {
 	RootKey      string `ini:"root_key"`
 	DirValue     string `ini:"dir_value"`
 	EndPointsRaw string
-	EndPoints    []string `ini:"endpoint,omitempty,allowshadow"`
-	Auth         bool     `ini:"auth"`
-	Username     string   `ini:"username"`
-	Password     string   `ini:"password"`
-	CertFile     string   `ini:"cert_file"`
-	KeyFile      string   `ini:"key_file"`
-	CAFile       string   `ini:"ca_file"`
+	//EndPoints    []string `ini:"endpoint,omitempty,allowshadow"`
+	EndPoints stringSliceFlag `ini:"endpoint,omitempty,allowshadow"`
+	Auth      bool            `ini:"auth"`
+	Username  string          `ini:"username"`
+	Password  string          `ini:"password"`
+	CertFile  string          `ini:"cert_file"`
+	KeyFile   string          `ini:"key_file"`
+	CAFile    string          `ini:"ca_file"`
 }
 
 // Config contains all configuration options
@@ -54,7 +76,8 @@ func setCMDOptions(config *Config) {
 	flag.StringVar(&config.AppConf.KeyFile, "keyfile", "", "Web server key file")
 	flag.StringVar(&config.EtcdConf.RootKey, "etcdrootkey", "", "Root key (key prefix) used in etcd")
 	flag.StringVar(&config.EtcdConf.DirValue, "etcddirvalue", "__etcd_dir_value_fADFbkjqdfs6__", "Value representing directory keys")
-	flag.StringVar(&config.EtcdConf.EndPointsRaw, "etcdendpoints", "", "Etcd endpoints (multiple values should be separated by ',')")
+	//flag.StringVar(&config.EtcdConf.EndPointsRaw, "etcdendpoints", "", "Etcd endpoints (multiple values should be separated by ',')")
+	flag.Var(&config.EtcdConf.EndPoints, "etcdendpoint", "Etcd endpoint (parameter can be set multiple times)")
 	flag.BoolVar(&config.EtcdConf.Auth, "etcdauth", false, "Use authentication for etcd")
 	flag.StringVar(&config.EtcdConf.Username, "etcdusername", "", "Username to authenticate against etcd")
 	flag.StringVar(&config.EtcdConf.Password, "etcdpassword", "", "Password to authenticate against etcd")
@@ -72,6 +95,11 @@ func NewConfig() (*Config, error) {
 	setCMDOptions(config)
 	flag.Parse()
 
+	clearEndpoints := false
+	if len(config.EtcdConf.EndPoints) > 0 {
+		clearEndpoints = true
+	}
+
 	// load config file if provided
 	if config.ConfigFile != "" {
 		err := InitStructFromINI(&config.AppConf, "app", config.ConfigFile)
@@ -87,43 +115,15 @@ func NewConfig() (*Config, error) {
 
 	// Reparse flags so that command line options have precedence
 	// over the config file
+	// clear EndPoints if they exist in flags since otherwise we would have
+	// the union of config file and flags
+	if clearEndpoints {
+		config.EtcdConf.EndPoints = []string{}
+	}
 	flag.Parse()
 
 	return config, nil
 }
-
-// InitConfig initializes the configuration from a config file
-/*func InitConfig() error {
-	cfg, err := ini.ShadowLoad(Conf.ConfigFile)
-	if err != nil {
-		return err
-	}
-
-	appSec := cfg.Section("app")
-	Conf.Port = appSec.Key("port").Value()
-	Conf.Auth = appSec.Key("auth").MustBool()
-	Conf.TokenMaxAge = appSec.Key("token_max_age").MustInt()
-	Conf.CertFile = appSec.Key("cert_file").Value()
-	Conf.KeyFile = appSec.Key("key_file").Value()
-	Conf.Username = appSec.Key("username").Value()
-	Conf.Password = appSec.Key("password").Value()
-
-	etcdSec := cfg.Section("etcd")
-	Conf.EtcdRootKey = etcdSec.Key("root_key").Value()
-	Conf.EtcdDirValue = etcdSec.Key("dir_value").Value()
-	fmt.Printf("InitConfig: EtcdEndpoints raw: %v\n", etcdSec.Key("addr"))
-	fmt.Printf("InitConfig: EtcdEndpoints: %v\n", etcdSec.Key("addr").Value())
-	fmt.Printf("InitConfig: EtcdEndpoints with shadows: %v\n", etcdSec.Key("addr").ValueWithShadows())
-	Conf.EtcdEndPoints = etcdSec.Key("addr").ValueWithShadows()
-	Conf.EtcdAuth = appSec.Key("etcdauth").MustBool()
-	Conf.EtcdUsername = etcdSec.Key("username").Value()
-	Conf.EtcdPassword = etcdSec.Key("password").Value()
-	Conf.EtcdCertFile = etcdSec.Key("cert_file").Value()
-	Conf.EtcdKeyFile = etcdSec.Key("key_file").Value()
-	Conf.EtcdCAFile = etcdSec.Key("ca_file").Value()
-
-	return nil
-}*/
 
 // InitStructFromINI loads the struct s from the section secName of ini file
 // iniURL

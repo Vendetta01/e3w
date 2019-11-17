@@ -1,16 +1,15 @@
-package conf_test
+package conf
 
 import (
+	"log"
 	"os"
 	"reflect"
 	"testing"
-
-	"github.com/VendettA01/e3w/conf"
 )
 
 func TestNewConfigFromINI(t *testing.T) {
 	os.Args = []string{"cmd", "-configfile", "test/config.test.ini"}
-	config, err := conf.NewConfig()
+	config, err := NewConfig()
 
 	if err != nil {
 		t.Fatal(err)
@@ -20,9 +19,34 @@ func TestNewConfigFromINI(t *testing.T) {
 		t.Error("[app].auth != true")
 	}
 	// test if multiple endpoints are read
-	exp := []string{"etcd:2379", "etcd:22379", "etcd:32379"}
+	exp := stringSliceFlag{"etcd:2379", "etcd:22379", "etcd:32379"}
 	act := config.EtcdConf.EndPoints
 	if !reflect.DeepEqual(act, exp) {
 		t.Errorf("expected: %v, actual: %v", exp, act)
+	}
+}
+
+func TestNewConfigFromCMD(t *testing.T) {
+	os.Args = []string{"cmd", "-version",
+		"-configfile=test/config.test.ini",
+		"-etcdendpoint=testendpoint1",
+		"-etcdendpoint=testendpoint2",
+		"-auth=false"}
+	config, err := NewConfig()
+
+	log.Printf("DEBUG: config: %+v", config)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !config.PrintVer {
+		t.Error("config.PrintVer: exp: true; act: false")
+	}
+
+	exp := stringSliceFlag{"testendpoint1", "testendpoint2"}
+	act := config.EtcdConf.EndPoints
+	if !reflect.DeepEqual(act, exp) {
+		t.Errorf("config.EtcdConf.Endpoints: act: %+v; exp: %+v", act, exp)
 	}
 }
