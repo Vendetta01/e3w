@@ -29,7 +29,11 @@ func setUpAuth() (*auth.UserAuthentications, error) {
 
 	if conf.Conf.Auth {
 		init := func(userAuth auth.UserAuthentication) error {
-			return conf.InitAuthFromINI(userAuth, conf.Conf.ConfigFile)
+			err := conf.InitStructFromINI(userAuth, "auth:"+userAuth.GetName(), conf.Conf.ConfigFile)
+			if err != nil {
+				return err
+			}
+			return userAuth.TestConfig()
 		}
 		authLocal, err := auth.NewLocal()
 		if err != nil {

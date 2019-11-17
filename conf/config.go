@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/VendettA01/e3w/auth"
 	"github.com/pkg/errors"
 	"gopkg.in/ini.v1"
 )
 
-// Config TODO
+// Config contains all configuration options
 type Config struct {
 	ConfigFile       string
 	Port             string
@@ -33,9 +32,11 @@ type Config struct {
 	PrintVer         bool
 }
 
-// Conf TODO
+// Conf is the globaly accessible configuration of the running instance
+// TODO: remove global variable
 var Conf Config
 
+// init initializes the command line options for the conf package
 func init() {
 	flag.StringVar(&Conf.ConfigFile, "configfile", "conf/config.default.ini", "The e3w config file")
 	flag.StringVar(&Conf.Port, "port", "8080", "Port bound to web server")
@@ -57,7 +58,7 @@ func init() {
 	flag.BoolVar(&Conf.PrintVer, "version", false, "Print version")
 }
 
-// InitConfig TODO
+// InitConfig initializes the configuration from a config file
 func InitConfig() error {
 	cfg, err := ini.ShadowLoad(Conf.ConfigFile)
 	if err != nil {
@@ -90,23 +91,22 @@ func InitConfig() error {
 	return nil
 }
 
-// InitAuthFromINI TODO
-func InitAuthFromINI(userAuth auth.UserAuthentication, iniURL string) error {
+// InitStructFromINI loads
+func InitStructFromINI(s interface{}, secName, iniURL string) error {
 	cfg, err := ini.Load(iniURL)
 	if err != nil {
-		return errors.Wrapf(err, "%s: ini.Load(iniURL) failed", userAuth.GetName())
+		return errors.Wrapf(err, "ini.Load(iniURL) failed: s: %+v; secName: %s; iniURL: %s", s, secName, iniURL)
 	}
 
-	secName := fmt.Sprintf("auth:%s", userAuth.GetName())
-	sec := cfg.Section(secName)
-	if sec == nil {
-		return errors.New(fmt.Sprintf("%s: section: %s: section not found", userAuth.GetName(), secName))
-	}
-	err = sec.MapTo(userAuth)
+	sec, err := cfg.GetSection(secName)
 	if err != nil {
-		return errors.New(fmt.Sprintf("%s: MapTo(userAuth) failed", userAuth.GetName()))
+		return errors.New(fmt.Sprintf("section not found: s: %+v; secName: %s; iniURL: %s", s, secName, iniURL))
 	}
-	log.Printf("DEBUG: initAuthModule(): config processed for: %s: %+v", userAuth.GetName(), userAuth)
+	err = sec.MapTo(s)
+	if err != nil {
+		return errors.New(fmt.Sprintf("MapTo(s) failed: s: %+v; secName: %s; iniURL: %s", s, secName, iniURL))
+	}
+	log.Printf("DEBUG: InitStructFromINI(): config processed: s: %+v; secName: %s; iniURL: %s", s, secName, iniURL)
 
-	return userAuth.TestConfig()
+	return nil
 }
