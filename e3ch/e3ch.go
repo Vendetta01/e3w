@@ -14,11 +14,11 @@ import (
 func NewE3chClient(config *conf.Config) (*client.EtcdHRCHYClient, error) {
 	var tlsConfig *tls.Config
 	var err error
-	if config.EtcdCertFile != "" && config.EtcdKeyFile != "" && config.EtcdCAFile != "" {
+	if config.EtcdConf.CertFile != "" && config.EtcdConf.KeyFile != "" && config.EtcdConf.CAFile != "" {
 		tlsInfo := transport.TLSInfo{
-			CertFile:      config.EtcdCertFile,
-			KeyFile:       config.EtcdKeyFile,
-			TrustedCAFile: config.EtcdCAFile,
+			CertFile:      config.EtcdConf.CertFile,
+			KeyFile:       config.EtcdConf.KeyFile,
+			TrustedCAFile: config.EtcdConf.CAFile,
 		}
 		tlsConfig, err = tlsInfo.ClientConfig()
 		if err != nil {
@@ -27,22 +27,23 @@ func NewE3chClient(config *conf.Config) (*client.EtcdHRCHYClient, error) {
 	}
 
 	clt, err := clientv3.New(clientv3.Config{
-		Endpoints: config.EtcdEndPoints,
-		Username:  config.EtcdUsername,
-		Password:  config.EtcdPassword,
+		Endpoints: config.EtcdConf.EndPoints,
+		Username:  config.EtcdConf.Username,
+		Password:  config.EtcdConf.Password,
 		TLS:       tlsConfig,
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	client, err := client.New(clt, config.EtcdRootKey, config.EtcdDirValue)
+	client, err := client.New(clt, config.EtcdConf.RootKey, config.EtcdConf.DirValue)
 	if err != nil {
 		return nil, err
 	}
 	return client, client.FormatRootKey()
 }
 
+// CloneE3chClient TODO
 func CloneE3chClient(username, password string, client *client.EtcdHRCHYClient) (*client.EtcdHRCHYClient, error) {
 	clt, err := clientv3.New(clientv3.Config{
 		Endpoints: client.EtcdClient().Endpoints(),

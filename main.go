@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -21,15 +20,15 @@ const (
 	ProgramVersion = "0.1.0"
 )
 
-func setUpAuth() (*auth.UserAuthentications, error) {
+func setUpAuth(config *conf.Config) (*auth.UserAuthentications, error) {
 	userAuths, err := auth.NewUserAuths()
 	if err != nil {
 		return nil, errors.Wrap(err, "auth.NewUserAuths() failed")
 	}
 
-	if conf.Conf.Auth {
+	if config.AppConf.Auth {
 		init := func(userAuth auth.UserAuthentication) error {
-			err := conf.InitStructFromINI(userAuth, "auth:"+userAuth.GetName(), conf.Conf.ConfigFile)
+			err := conf.InitStructFromINI(userAuth, "auth:"+userAuth.GetName(), config.ConfigFile)
 			if err != nil {
 				return err
 			}
@@ -58,21 +57,15 @@ func setUpAuth() (*auth.UserAuthentications, error) {
 }
 
 func main() {
-	// Initial parsing of command line options to get ConfigFile
-	// if specified
-	flag.Parse()
-	err := conf.InitConfig()
+	config, err := conf.NewConfig()
 	if err != nil {
+		log.Printf("conf.NetConfig() failed: %+v", err)
 		panic(err)
 	}
-	// Reparse flags so that command line options have precedence
-	// over the config file
-	flag.Parse()
-	//conf.ParseEndPoints()
 
-	log.Printf("%+v\n", conf.Conf)
+	log.Printf("%+v\n", config)
 
-	if conf.Conf.PrintVer {
+	if config.PrintVer {
 		fmt.Printf("[%s v%s]\n[etcd %s]\n",
 			ProgramName, ProgramVersion,
 			version.Version)
@@ -81,13 +74,13 @@ func main() {
 
 	log.Println("Connecting to etcd...")
 
-	client, err := e3ch.NewE3chClient(&conf.Conf)
+	client, err := e3ch.NewE3chClient(config)
 	if err != nil {
-		log.Printf("ERROR: e3ch.NewE3chClient() failed: %v", err)
+		log.Printf("ERROR: e3ch.NewE3chClient() failed: %+v", err)
 		panic(err)
 	}
 
-	userAuths, err := setUpAuth()
+	userAuths, err := setUpAuth(config)
 	if err != nil {
 		log.Printf("ERROR: setUpAuths(): error: %+v", err)
 		panic(err)
@@ -99,13 +92,13 @@ func main() {
 	router := gin.Default()
 	router.UseRawPath = true
 	log.Print("INFO: Initializing routers...")
-	routers.InitRouters(router, &conf.Conf, client, userAuths)
+	routers.InitRouters(router, config, client, userAuths)
 
-	if conf.Conf.CertFile != "" && conf.Conf.KeyFile != "" {
+	if config.AppConf.CertFile != "" && config.AppConf.KeyFile != "" {
 		log.Print("INFO: Starting HTTPS server...")
-		router.RunTLS(":"+conf.Conf.Port, conf.Conf.CertFile, conf.Conf.KeyFile)
+		router.RunTLS(":"+config.AppConf.Port, config.AppConf.CertFile, config.AppConf.KeyFile)
 	} else {
 		log.Print("INFO: Starting HTTP server...")
-		router.Run(":" + conf.Conf.Port)
+		router.Run(":" + config.AppConf.Port)
 	}
 }

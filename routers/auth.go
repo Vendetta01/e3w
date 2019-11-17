@@ -18,10 +18,10 @@ import (
 // TODO: should be abstracted so that you can use anything as a backend
 var cache = make(map[string]time.Time)
 
-func getSessionToken() string {
+func getSessionToken(tokenMaxAge int) string {
 	// Create a new random session token
 	sessionToken := uuid.NewV4().String()
-	expiresAt := time.Now().Add(time.Duration(conf.Conf.TokenMaxAge) * time.Second)
+	expiresAt := time.Now().Add(time.Duration(tokenMaxAge) * time.Second)
 	// Set the token in the cache, along with the user whom it represents
 	// The token has an expiry time of tokenMaxAge seconds
 	cache[sessionToken] = expiresAt
@@ -30,14 +30,14 @@ func getSessionToken() string {
 }
 
 // authRequired TODO
-func authRequired(userAuths *auth.UserAuthentications) gin.HandlerFunc {
+func authRequired(userAuths *auth.UserAuthentications, config *conf.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// if authentication is disabled continue with next handler
 		// TODO: resolve this dependency on conf.Conf somehow
-		if !conf.Conf.Auth {
+		/*if !conf.Conf.Auth {
 			c.Next()
 			return
-		}
+		}*/
 
 		// Check if cookie is present
 		log.Print("authRequired: checking cookie...")
@@ -82,13 +82,14 @@ func authRequired(userAuths *auth.UserAuthentications) gin.HandlerFunc {
 
 		// Refresh existing session token
 		delete(cache, userToken)
-		c.SetCookie("session_token", getSessionToken(), conf.Conf.TokenMaxAge, "", "", false, false)
+		tokenMaxAge := config.AppConf.TokenMaxAge
+		c.SetCookie("session_token", getSessionToken(tokenMaxAge), tokenMaxAge, "", "", false, false)
 		log.Print("authRequired: Cookie set")
 	}
 }
 
 // logIn TODO
-func logIn(userAuths *auth.UserAuthentications) gin.HandlerFunc {
+func logIn(userAuths *auth.UserAuthentications, config *conf.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// First get username and password from POST form
 		var userCreds auth.UserCredentials
@@ -120,7 +121,8 @@ func logIn(userAuths *auth.UserAuthentications) gin.HandlerFunc {
 			return
 		}
 
-		c.SetCookie("session_token", getSessionToken(), conf.Conf.TokenMaxAge, "", "", false, false)
+		tokenMaxAge := config.AppConf.TokenMaxAge
+		c.SetCookie("session_token", getSessionToken(tokenMaxAge), tokenMaxAge, "", "", false, false)
 	}
 }
 

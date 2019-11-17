@@ -8,7 +8,7 @@ import (
 type Local struct {
 	Username           string `ini:"username"`
 	Password           string `ini:"password"`
-	AllowEmptyPassword bool   `ini:"allowemptypassword"`
+	AllowEmptyPassword bool   `ini:"allow_empty_password"`
 }
 
 // NewLocal TODO

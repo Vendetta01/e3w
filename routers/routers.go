@@ -23,7 +23,7 @@ func withE3chGroup(e3chClt *client.EtcdHRCHYClient, config *conf.Config) groupHa
 	return func(h e3chHandler) resp.RespHandler {
 		return func(c *gin.Context) (interface{}, error) {
 			clt := e3chClt
-			if config.EtcdAuth {
+			if config.EtcdConf.Auth {
 				var err error
 				username := c.Request.Header.Get(etcdUsernameHeader)
 				password := c.Request.Header.Get(etcdPasswordHeader)
@@ -58,11 +58,11 @@ func InitRouters(g *gin.Engine, config *conf.Config, e3chClt *client.EtcdHRCHYCl
 
 	private := g.Group("/")
 	if userAuths.IsEnabled {
-		private.Use(authRequired(userAuths))
+		private.Use(authRequired(userAuths, config))
 	}
 
 	// login route cannot be protected by withAuth
-	g.POST("/login", logIn(userAuths))
+	g.POST("/login", logIn(userAuths, config))
 
 	// checkToken and logout are protected by withAuth, so
 	// only authenticated users can use these

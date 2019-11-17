@@ -12,14 +12,14 @@ import (
 
 // Ldap TODO
 type Ldap struct {
-	BindUserDN            string `ini:"binduserdn"`
-	BindPW                string `ini:"bindpw"`
+	BindUserDN            string `ini:"bind_user_dn"`
+	BindPW                string `ini:"bind_pw"`
 	URI                   string `ini:"uri"`
-	UseTLS                bool   `ini:"usetls"`
-	TLSInsecureSkipVerify bool   `ini:"tlsinsecureskipverify"`
-	CaCertFile            string `ini:"cacertfile"`
-	BaseDN                string `ini:"basedn"`
-	UserSearchFilter      string `ini:"usersearchfilter"`
+	UseTLS                bool   `ini:"use_tls"`
+	TLSInsecureSkipVerify bool   `ini:"tls_insecure_skip_verify"`
+	CaCertFile            string `ini:"ca_cert_file"`
+	BaseDN                string `ini:"base_dn"`
+	UserSearchFilter      string `ini:"user_search_filter"`
 }
 
 // NewLdap TODO
