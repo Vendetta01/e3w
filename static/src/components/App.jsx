@@ -4,6 +4,7 @@ import { Menu, Icon } from 'antd'
 import { Box } from 'react-polymer-layout'
 import KeyValue from './KeyValue'
 import Login from './Login'
+import Logout from './Logout'
 import Members from './Members'
 import Roles from './Roles'
 import Setting from './Setting'
@@ -12,15 +13,15 @@ import withAuth from './withAuth'
 
 class App extends React.Component {
     constructor(props) {
-	super(props);
-	this.state = { menu: "" };
+	    super(props);
+	    this.state = { menu: "" };
     }
 
     _getMenu = () => {
         let parts = window.location.hash.split("/")
         let menu = "kv"
         if (parts.length > 1) {
-	    menu = parts[1]
+	        menu = parts[1]
         }
         return menu
     }
@@ -30,7 +31,7 @@ class App extends React.Component {
     }
 
     _appSetDir = (dir) => {
-	this.setState({ dir: dir })
+        this.setState({ dir: dir })
     }
 
     componentDidMount() {
@@ -38,15 +39,15 @@ class App extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
-	if (this.state.menu !== this._getMenu()) {
-	    this._changeMenu()
-	}
+        if (this.state.menu !== this._getMenu()) {
+            this._changeMenu()
+        }
     }
 
     handleClick = (event) => {
-	if (event.key !== this.state.menu) {
-	    this._changeMenu()
-	}
+	    if (event.key !== this.state.menu) {
+	        this._changeMenu()
+	    }
     }
 
     render() {
@@ -88,7 +89,11 @@ class App extends React.Component {
                             </Menu.SubMenu>
                             <Menu.Item key="setting">
                                 <Icon type="setting" /><span>SETTING</span>
-				<Link to="/setting" />
+				                <Link to="/setting" />
+                            </Menu.Item>
+                            <Menu.Item key="logout">
+                                <Icon type="lock" /><span>LOGOUT</span>
+				                <Link to="/logout" />
                             </Menu.Item>
                         </Menu>
                     </Box>
@@ -114,6 +119,7 @@ class AppBody extends React.Component {
 		<Route path="/roles" component={withAuth(Roles)} />
 		<Route path="/users" component={withAuth(Users)} />
 		<Route path="/setting" component={withAuth(Setting)} />
+        <Route path="/logout" component={withAuth(Logout)} />
 	    </Switch>
 	)
     }
