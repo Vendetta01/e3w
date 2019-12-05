@@ -4,16 +4,15 @@ import (
 	"github.com/coreos/etcd/auth/authpb"
 	"github.com/coreos/etcd/clientv3"
 	"github.com/gin-gonic/gin"
-	"github.com/soyking/e3ch"
+	client "github.com/soyking/e3ch"
 )
 
 func getRolesHandler(c *gin.Context, client *clientv3.Client) (interface{}, error) {
 	resp, err := client.RoleList(newEtcdCtx())
 	if err != nil {
 		return nil, err
-	} else {
-		return resp.Roles, nil
 	}
+	return resp.Roles, nil
 }
 
 type createRoleRequest struct {

@@ -17,10 +17,10 @@ const (
 
 type e3chHandler func(*gin.Context, *client.EtcdHRCHYClient) (interface{}, error)
 
-type groupHandler func(e3chHandler) resp.RespHandler
+type groupHandler func(e3chHandler) resp.HandlerType
 
 func withE3chGroup(e3chClt *client.EtcdHRCHYClient, config *conf.Config) groupHandler {
-	return func(h e3chHandler) resp.RespHandler {
+	return func(h e3chHandler) resp.HandlerType {
 		return func(c *gin.Context) (interface{}, error) {
 			clt := e3chClt
 			if config.EtcdConf.Auth {

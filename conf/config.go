@@ -9,9 +9,11 @@ import (
 	"gopkg.in/ini.v1"
 )
 
-// stringSliceFlag TODO
+// stringSliceFlag defines a new type (string slice) for processing the same flag
+// multiple times
 type stringSliceFlag []string
 
+// String implements the String() method of the Value interface of package flag
 func (ssf *stringSliceFlag) String() string {
 	ret := "["
 	for i, s := range *ssf {
@@ -24,7 +26,7 @@ func (ssf *stringSliceFlag) String() string {
 	return ret
 }
 
-// Set TODO
+// Set implements the Set() method of the Value interface of package flag
 func (ssf *stringSliceFlag) Set(value string) error {
 	*ssf = append(*ssf, value)
 	return nil
@@ -44,14 +46,13 @@ type EtcdConfig struct {
 	RootKey      string `ini:"root_key"`
 	DirValue     string `ini:"dir_value"`
 	EndPointsRaw string
-	//EndPoints    []string `ini:"endpoint,omitempty,allowshadow"`
-	EndPoints stringSliceFlag `ini:"endpoint,omitempty,allowshadow"`
-	Auth      bool            `ini:"auth"`
-	Username  string          `ini:"username"`
-	Password  string          `ini:"password"`
-	CertFile  string          `ini:"cert_file"`
-	KeyFile   string          `ini:"key_file"`
-	CAFile    string          `ini:"ca_file"`
+	EndPoints    stringSliceFlag `ini:"endpoint,omitempty,allowshadow"`
+	Auth         bool            `ini:"auth"`
+	Username     string          `ini:"username"`
+	Password     string          `ini:"password"`
+	CertFile     string          `ini:"cert_file"`
+	KeyFile      string          `ini:"key_file"`
+	CAFile       string          `ini:"ca_file"`
 }
 
 // Config contains all configuration options
@@ -61,10 +62,6 @@ type Config struct {
 	EtcdConf   EtcdConfig `ini:"etcd"`
 	PrintVer   bool
 }
-
-// Conf is the globaly accessible configuration of the running instance
-// TODO: remove global variable
-//var Conf Config
 
 // init initializes the command line options for the conf package
 func setCMDOptions(config *Config) {
@@ -76,7 +73,6 @@ func setCMDOptions(config *Config) {
 	flag.StringVar(&config.AppConf.KeyFile, "keyfile", "", "Web server key file")
 	flag.StringVar(&config.EtcdConf.RootKey, "etcdrootkey", "", "Root key (key prefix) used in etcd")
 	flag.StringVar(&config.EtcdConf.DirValue, "etcddirvalue", "__etcd_dir_value_fADFbkjqdfs6__", "Value representing directory keys")
-	//flag.StringVar(&config.EtcdConf.EndPointsRaw, "etcdendpoints", "", "Etcd endpoints (multiple values should be separated by ',')")
 	flag.Var(&config.EtcdConf.EndPoints, "etcdendpoint", "Etcd endpoint (parameter can be set multiple times)")
 	flag.BoolVar(&config.EtcdConf.Auth, "etcdauth", false, "Use authentication for etcd")
 	flag.StringVar(&config.EtcdConf.Username, "etcdusername", "", "Username to authenticate against etcd")
@@ -87,7 +83,7 @@ func setCMDOptions(config *Config) {
 	flag.BoolVar(&config.PrintVer, "version", false, "Print version")
 }
 
-// NewConfig TODO
+// NewConfig returns a new instance of the struct Config
 func NewConfig() (*Config, error) {
 	config := &Config{}
 

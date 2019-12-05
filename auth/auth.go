@@ -6,22 +6,33 @@ import (
 	"github.com/pkg/errors"
 )
 
-// UserCredentials TODO
+// UserCredentials defines a set of credentials (username and password) for a login
+// attempt
 type UserCredentials struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
 
-// UserAuthentication TODO
 //go:generate mockgen -destination mocks/UserAuthentication.go github.com/VendettA01/e3w/auth UserAuthentication
+
+// UserAuthentication defines the interface to be implemented by a new authentication method
+//
+// login(): implements the authentication methods login attempt
+//
+// GetName(): returns a unique name for the implemented authentication method
+//
+// TestConfig(): implements a test that returns whether the supplied config can be used
+// for login attempts
 type UserAuthentication interface {
 	login(UserCredentials) (bool, error)
 	GetName() string
 	TestConfig() error
 }
 
-// UserAuthentications TODO
 //go:generate mockgen -destination mocks/UserAuthentications.go github.com/VendettA01/e3w/auth UserAuthentications
+
+// UserAuthentications defines a collection of authentication methods that are registered
+// and provide a valid config
 type UserAuthentications struct {
 	// Is authentication enabled
 	IsEnabled bool
@@ -30,8 +41,10 @@ type UserAuthentications struct {
 }
 
 // NewUserAuths returns a new UserAuthentications struct
+//
 // A number of userAuthentication structs can be provided to initialize
 // the returned struct.
+//
 // TODO: These auth methods are not initialized/have to be initialized before.
 // This is contrary to the Register method and should be changed!
 func NewUserAuths(userAuths ...UserAuthentication) (*UserAuthentications, error) {
@@ -57,6 +70,7 @@ func NewUserAuths(userAuths ...UserAuthentication) (*UserAuthentications, error)
 }
 
 // RegisterMethod adds an authentication method to the struct UserAuthentications
+//
 // It expects a user authentication method (UserAuthentication) and an initialization
 // function that fills the UserAuthentication struct fields. The function returns
 // true or false depending on whether the method was successfuly registered and
@@ -82,6 +96,7 @@ func (userAuths *UserAuthentications) RegisterMethod(userAuth UserAuthentication
 }
 
 // CanLogIn verifies if the provided credentials are valid
+//
 // It calls login() on all registered authentication methods and returns true
 // as soon as the first one succeeds. If all attempts fail false is returned along
 // with the last error code != nil

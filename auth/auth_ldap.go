@@ -10,7 +10,7 @@ import (
 	"gopkg.in/ldap.v3"
 )
 
-// Ldap TODO
+// Ldap defines a struct with the necessary config
 type Ldap struct {
 	BindUserDN            string `ini:"bind_user_dn"`
 	BindPW                string `ini:"bind_pw"`
@@ -22,11 +22,12 @@ type Ldap struct {
 	UserSearchFilter      string `ini:"user_search_filter"`
 }
 
-// NewLdap TODO
+// NewLdap returns a new instance of the struct Ldap
 func NewLdap() (*Ldap, error) {
 	return new(Ldap), nil
 }
 
+// login implements the userAuthentication interface method login()
 func (l Ldap) login(userCreds UserCredentials) (bool, error) {
 	con, err := l.connect()
 	if err != nil {
@@ -71,12 +72,12 @@ func (l Ldap) login(userCreds UserCredentials) (bool, error) {
 	return true, nil
 }
 
-// GetName TODO
+// GetName implements the userAuthentication interface method GetName() (returns "ldap")
 func (l Ldap) GetName() string {
 	return "ldap"
 }
 
-// TestConfig TODO
+// TestConfig implements the userAuthentication interface method TestConfig()
 func (l Ldap) TestConfig() error {
 	con, err := l.connect()
 	if err != nil {
@@ -93,6 +94,7 @@ func (l Ldap) TestConfig() error {
 	return nil
 }
 
+// connect tries to establish a connection to the ldap server
 func (l Ldap) connect() (*ldap.Conn, error) {
 	if !l.UseTLS {
 		return ldap.Dial("tcp", l.URI)

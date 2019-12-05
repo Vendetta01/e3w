@@ -1,18 +1,22 @@
 package resp
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
+// Response defines the structure of a response of the web server
 type Response struct {
 	Result interface{} `json:"result"`
 	Err    string      `json:"err"`
 }
 
-type RespHandler func(c *gin.Context) (interface{}, error)
+// HandlerType defines a handler wrapper
+type HandlerType func(c *gin.Context) (interface{}, error)
 
-func Resp(handler RespHandler) gin.HandlerFunc {
+// Resp implements the response handler
+func Resp(handler HandlerType) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		result, err := handler(c)
 		r := &Response{}

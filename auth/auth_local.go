@@ -4,18 +4,19 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Local TODO
+// Local defines a struct with the necessary config
 type Local struct {
 	Username           string `ini:"username"`
 	Password           string `ini:"password"`
 	AllowEmptyPassword bool   `ini:"allow_empty_password"`
 }
 
-// NewLocal TODO
+// NewLocal returns a new instance of the struct Local
 func NewLocal() (*Local, error) {
 	return new(Local), nil
 }
 
+// login implements the userAuthentication interface method login()
 func (l Local) login(userCreds UserCredentials) (bool, error) {
 	if userCreds.Username == l.Username &&
 		userCreds.Password == l.Password {
@@ -24,12 +25,12 @@ func (l Local) login(userCreds UserCredentials) (bool, error) {
 	return false, nil
 }
 
-// GetName TODO
+// GetName implements the userAuthentication interface method GetName() (returns "local")
 func (l Local) GetName() string {
 	return "local"
 }
 
-// TestConfig TODO
+// TestConfig implements the userAuthentication interface method TestConfig()
 func (l Local) TestConfig() error {
 	if l.Username == "" {
 		return errors.New("auth_local: testConfig(): username is empty")
