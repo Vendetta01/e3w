@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/VendettA01/e3w/auth"
-	"github.com/VendettA01/e3w/conf"
-	"github.com/VendettA01/e3w/resp"
+	"github.com/VendettA01/e3w/src/auth"
+	"github.com/VendettA01/e3w/src/conf"
+	"github.com/VendettA01/e3w/src/resp"
 	"github.com/gin-gonic/gin"
 	uuid "github.com/satori/go.uuid"
 )

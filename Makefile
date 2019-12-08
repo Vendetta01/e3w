@@ -13,13 +13,15 @@ all: docker-build
 dep-build: dep build
 
 build:
-	export GOPATH="~/go/"
-	CGO_ENABLED=0 go build
+	$(MAKE) -C src/ $@
+#	export GOPATH="~/go/"
+#	CGO_ENABLED=0 go build src/
 
 dep:
-	export GOPATH="~/go/"
-	rm -rf vendor/*
-	dep ensure
+	$(MAKE) -C src/ $@
+#	export GOPATH="~/go/"
+#	rm -rf src/vendor/*
+#	dep ensure
 
 docker-build:
 	docker build -t ${IMAGE_NAME} .

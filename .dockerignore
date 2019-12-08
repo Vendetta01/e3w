@@ -2,3 +2,16 @@ images
 static/dist
 static/node_modules
 Dockerfile
+certs
+docker-compose.yml
+
+# ignore .git and .cache folders
+.git
+.cache
+
+# ignore all markdown files (md) beside all README*.md
+*.md
+!README*.md
+
+# ignore vendor path since it is newly created anyway
+src/vendor/*

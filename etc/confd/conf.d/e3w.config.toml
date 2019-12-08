@@ -2,11 +2,26 @@
 src = "e3w.config.ini.tmpl"
 dest = "/etc/e3w.config.ini"
 keys = [
-    "/conf/dnsmasq/servers",
-    "/conf/dnsmasq/addresses",
-    "/conf/dnsmasq/advanced_config",
-    "/conf/dnsmasq/no_resolv",
-    "/conf/dnsmasq/log_queries",
-    "/conf/dnsmasq/dns_forward_max",
+    "/conf/e3w/app/auth",
+    "/conf/e3w/app/token_max_age",
+    "/conf/e3w/auth/ldap",
+    "/conf/e3w/auth/ldap/base_dn",
+    "/conf/ldap/user_auth_pw",
+    "/conf/ldap/user_auth_dn",
+    "/conf/e3w/auth/ldap/ca_cert_file",
+    "/conf/e3w/auth/ldap/tls_insecure_skip_verify",
+    "/conf/ldap/server_path",
+    "/conf/e3w/auth/ldap/user_search_filter",
+    "/conf/ldap/use_tls",
+    "/conf/e3w/auth/local",
+    "/conf/e3w/auth/local/password",
+    "/conf/e3w/auth/local/username",
+    "/conf/e3w/etcd/endpoints",
+    "/conf/e3w/etcd/ca_file",
+    "/conf/e3w/etcd/cert_file",
+    "/conf/e3w/etcd/key_file",
+    "/conf/e3w/etcd/password",
+    "/conf/e3w/etcd/root_key",
+    "/conf/e3w/etcd/username"
 ]
 reload_cmd = "supervisorctl restart e3w"

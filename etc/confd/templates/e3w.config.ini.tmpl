@@ -2,31 +2,33 @@
 [app]
 port=8080
 {{- $key := print $key_base "/app/auth"}}
-{{- if exists $key }}
-    {{- if getv $key | parseBool}}
-	{{- print "auth=true"}}
-    {{- else}}
-	{{- print "auth=false"}}
-    {{- end}}
+{{- if getv $key "false" | parseBool}}
+auth=true
+{{- else}}
+auth=false
 {{- end}}
-{{- $key := print $key_base "/app/cert_file"}}
-cert_file={{getv $key}}
-{{- $key := print $key_base "/app/key_file"}}
-key_file={{getv $key}}
-{{- $key := print $key_base "/app/tokenmaxage"}}
-{{- if exists $key}}
-tokenmaxage={{getv $key}}
-{{- end}}
+cert_file={{getenv "CONFD__E3W__APP__CERT_FILE"}}
+key_file={{getenv "CONFD__E3W__APP__KEY_FILE"}}
+{{- $key := print $key_base "/app/token_max_age"}}
+token_max_age={{getv $key ""}}
 
 [etcd]
-root_key=e3w_test
-dir_value=
-addr=etcd:2379,etcd:22379,etcd:32379
-username=
-password=
-cert_file=
-key_file=
-ca_file=
+{{- $key := print $key_base "/etcd/root_key"}}
+root_key={{getv $key}}
+dir_value={{getenv "CONFD__E3W__ETCD__DIR_VALUE"}}
+{{- range print $key_base "/etcd/endpoints/*" | gets}}
+endpoint={{.Value}}
+{{- end}}
+{{- $key := print $key_base "/etcd/username"}}
+username={{getv $key ""}}
+{{- $key := print $key_base "/etcd/password"}}
+password={{getv $key ""}}
+{{- $key := print $key_base "/etcd/cert_file"}}
+cert_file={{getv $key ""}}
+{{- $key := print $key_base "/etcd/key_file"}}
+key_file={{getv $key ""}}
+{{- $key := print $key_base "/etcd/ca_file"}}
+ca_file={{getv $key ""}}
 
 {{- $key := print $key_base "/auth/local"}}
 {{- if exists $key}}
@@ -40,31 +42,28 @@ password={{getv $key}}
 {{- $key := print $key_base "/auth/ldap"}}
 {{- if exists $key}}
 [auth:ldap]
-{{- $key := print $key_base "/auth/ldap/usetls"}}
-{{- if exists $key}}
-    {{- if getv $key | parseBool}}
-usetls=true
-    {{- else}}
-usetls=false
+{{- $key := print "/conf/ldap/user_auth_dn"}}
+bind_user_dn={{getv $key}}
+{{- $key := print "/conf/ldap/user_auth_pw"}}
+bind_pw={{getv $key}}
+{{- $key := print "/conf/ldap/server_path"}}
+uri={{getv $key}}
+{{- $key := print "/conf/ldap/use_tls"}}
+{{- if getv $key "false" | parseBool}}
+use_tls=true
+{{- else}}
+use_tls=false
 {{- end}}
-{{- $key := print $key_base "/auth/ldap/tlsinsecureskipverify"}}
-{{- if exists $key}}
-    {{- if getv $key | parseBool}}
-tlsinsecureskipverify=true
-    {{- else}}
-tlsinsecureskipverify=false
+{{- $key := print $key_base "/auth/ldap/tls_insecure_skip_verify"}}
+{{- if getv $key "false" | parseBool}}
+tls_insecure_skip_verify=true
+{{- else}}
+tls_insecure_skip_verify=false
 {{- end}}
-{{- $key := print $key_base "/auth/local/password"}}
-password={{getv $key}}
+{{- $key := print $key_base "/auth/ldap/ca_cert_file"}}
+ca_cert_file={{getv $key}}
+{{- $key := print $key_base "/auth/ldap/base_dn"}}
+base_dn={{getv $key}}
+{{- $key := print $key_base "/auth/ldap/user_search_filter"}}
+user_search_filter={{getv $key}}
 {{- end}}
-
-;[auth:ldap]
-;binduserdn=cn=user_auth,ou=system,dc=example,dc=com
-;bindpw=secretbindpw
-;uri=ldap.example.com:636
-;usetls=true
-;tlsinsecureskipverify=false
-;cacertfile=certs/rootCA.crt
-;basedn=ou=users,dc=example,dc=com
-;usersearchfilter=(&(objectClass=organizationalPerson)(uid=%s))
-

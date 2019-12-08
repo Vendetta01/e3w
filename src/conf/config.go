@@ -43,16 +43,15 @@ type AppConfig struct {
 
 // EtcdConfig contains the etcd connection configuration
 type EtcdConfig struct {
-	RootKey      string `ini:"root_key"`
-	DirValue     string `ini:"dir_value"`
-	EndPointsRaw string
-	EndPoints    stringSliceFlag `ini:"endpoint,omitempty,allowshadow"`
-	Auth         bool            `ini:"auth"`
-	Username     string          `ini:"username"`
-	Password     string          `ini:"password"`
-	CertFile     string          `ini:"cert_file"`
-	KeyFile      string          `ini:"key_file"`
-	CAFile       string          `ini:"ca_file"`
+	RootKey   string          `ini:"root_key"`
+	DirValue  string          `ini:"dir_value"`
+	EndPoints stringSliceFlag `ini:"endpoint,omitempty,allowshadow"`
+	Auth      bool            `ini:"auth"`
+	Username  string          `ini:"username"`
+	Password  string          `ini:"password"`
+	CertFile  string          `ini:"cert_file"`
+	KeyFile   string          `ini:"key_file"`
+	CAFile    string          `ini:"ca_file"`
 }
 
 // Config contains all configuration options

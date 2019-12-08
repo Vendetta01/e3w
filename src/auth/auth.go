@@ -13,7 +13,7 @@ type UserCredentials struct {
 	Password string `json:"password"`
 }
 
-//go:generate mockgen -destination mocks/UserAuthentication.go github.com/VendettA01/e3w/auth UserAuthentication
+//go:generate mockgen -destination mocks/UserAuthentication.go github.com/VendettA01/e3w/src/auth UserAuthentication
 
 // UserAuthentication defines the interface to be implemented by a new authentication method
 //
@@ -29,7 +29,7 @@ type UserAuthentication interface {
 	TestConfig() error
 }
 
-//go:generate mockgen -destination mocks/UserAuthentications.go github.com/VendettA01/e3w/auth UserAuthentications
+//go:generate mockgen -destination mocks/UserAuthentications.go github.com/VendettA01/e3w/src/auth UserAuthentications
 
 // UserAuthentications defines a collection of authentication methods that are registered
 // and provide a valid config

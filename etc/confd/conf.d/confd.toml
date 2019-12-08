@@ -2,15 +2,15 @@
 src = "confd.toml.tmpl"
 dest = "/etc/confd/confd.toml"
 keys = [
-    "/conf/confd/dnsmasq/backend",
-    "/conf/confd/dnsmasq/client_cakeys",
-    "/conf/confd/dnsmasq/client_cert",
-    "/conf/confd/dnsmasq/client_key",
-    "/conf/confd/dnsmasq/nodes",
-    "/conf/confd/dnsmasq/scheme",
-    "/conf/confd/dnsmasq/srv_domain",
-    "/conf/confd/dnsmasq/watch",
-    "/conf/confd/dnsmasq/onetime",
-    "/conf/confd/dnsmasq/interval",
+    "/conf/confd/e3w/backend",
+    "/conf/confd/e3w/client_cakeys",
+    "/conf/confd/e3w/client_cert",
+    "/conf/confd/e3w/client_key",
+    "/conf/confd/e3w/nodes",
+    "/conf/confd/e3w/scheme",
+    "/conf/confd/e3w/srv_domain",
+    "/conf/confd/e3w/watch",
+    "/conf/confd/e3w/onetime",
+    "/conf/confd/e3w/interval",
 ]
-reload_cmd = "supervisorctl restart dnsmasq"
+#reload_cmd = "supervisorctl restart confd"

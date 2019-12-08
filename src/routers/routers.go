@@ -1,10 +1,10 @@
 package routers
 
 import (
-	"github.com/VendettA01/e3w/auth"
-	"github.com/VendettA01/e3w/conf"
-	"github.com/VendettA01/e3w/e3ch"
-	"github.com/VendettA01/e3w/resp"
+	"github.com/VendettA01/e3w/src/auth"
+	"github.com/VendettA01/e3w/src/conf"
+	"github.com/VendettA01/e3w/src/e3ch"
+	"github.com/VendettA01/e3w/src/resp"
 	"github.com/coreos/etcd/clientv3"
 	"github.com/gin-gonic/gin"
 	client "github.com/soyking/e3ch"

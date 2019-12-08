@@ -3,8 +3,8 @@ package auth_test
 /*import (
 	"testing"
 
-	auth "github.com/VendettA01/e3w/auth"
-	mock_auth "github.com/VendettA01/e3w/auth/mocks"
+	auth "github.com/VendettA01/e3w/src/auth"
+	mock_auth "github.com/VendettA01/e3w/src/auth/mocks"
 	"github.com/golang/mock/gomock"
 )*/
 
