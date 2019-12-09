@@ -20,11 +20,38 @@ type Ldap struct {
 	CaCertFile            string `ini:"ca_cert_file"`
 	BaseDN                string `ini:"base_dn"`
 	UserSearchFilter      string `ini:"user_search_filter"`
+	GroupDNAllowedUsers   string `ini:"group_dn_allowed_users"`
 }
 
 // NewLdap returns a new instance of the struct Ldap
 func NewLdap() (*Ldap, error) {
 	return new(Ldap), nil
+}
+
+// isMemberOf()...
+func isAllowedUser(con *ldap.Conn, groupDN, userDN string) (bool, error) {
+	// Search for the given group and check if userDN is a member
+	searchRequest := ldap.NewSearchRequest(
+		groupDN,
+		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
+		fmt.Sprintf("(&(objectClass=groupOfNames)(member=%s))", userDN),
+		[]string{"dn"},
+		nil,
+	)
+
+	searchResult, err := con.Search(searchRequest)
+	// Result code 32 means "no such object"
+	if ldap.IsErrorWithCode(err, 32) {
+		return false, nil
+	} else if err != nil {
+		return false, errors.Wrap(err, "Search() failed")
+	}
+
+	if len(searchResult.Entries) > 0 {
+		return true, nil
+	}
+
+	return false, nil
 }
 
 // login implements the userAuthentication interface method login()
@@ -61,10 +88,19 @@ func (l Ldap) login(userCreds UserCredentials) (bool, error) {
 
 	userDN := searchResult.Entries[0].DN
 
+	// TODO: insert check if user is allowed before we check the password
+	allowed, err := isAllowedUser(con, l.GroupDNAllowedUsers, userDN)
+	if err != nil {
+		return false, errors.Wrap(err, "isAllowedUser(): ")
+	}
+	if !allowed {
+		return false, nil
+	}
+
 	// Bind as the user to verify their password
 	err = con.Bind(userDN, userCreds.Password)
 	if err != nil {
-		return false, errors.Wrap(err, "auth_ldap: login(): Bind failed")
+		return false, errors.Wrap(err, "con.Bind(): ")
 	}
 
 	// If we get here it means we successfuly bound to the ldap server
