@@ -10,7 +10,7 @@ RUN CGO_ENABLED=0 go build
 FROM node:8 AS frontend
 
 RUN mkdir /app
-COPY static/ /app/
+COPY src/static/ /app/
 WORKDIR /app
 RUN npm --registry=https://registry.npm.taobao.org \
 --cache=$HOME/.npm/.cache/cnpm \
