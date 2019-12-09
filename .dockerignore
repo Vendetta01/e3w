@@ -1,6 +1,6 @@
 images
-static/dist
-static/node_modules
+src/static/dist
+src/static/node_modules
 Dockerfile
 certs
 docker-compose.yml
