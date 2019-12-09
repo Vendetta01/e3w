@@ -26,13 +26,7 @@ COPY --from=frontend /app/dist /app/static/dist
 COPY --from=backend /go/src/github.com/VendettA01/e3w/src/conf/config.default.ini /app/conf
 COPY scripts/* /usr/bin/
 
-# Copy confd self configuration template/config
-COPY etc/confd/conf.d/confd.toml /tmp/etc/confd/conf.d/
-COPY etc/confd/templates/confd.toml.tmpl /tmp/etc/confd/templates/
-
-COPY etc/confd/conf.d/e3w.config.toml /etc/confd/conf.d/
-COPY etc/confd/templates/e3w.config.ini.tmpl /etc/confd/templates/
-COPY etc/supervisor/conf.d/supervisord.conf /etc/supervisor/conf.d/
+COPY etc/ /etc/
 
 EXPOSE 8080
 WORKDIR /app

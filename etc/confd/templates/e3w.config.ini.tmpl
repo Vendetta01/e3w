@@ -15,7 +15,7 @@ token_max_age={{getv $key ""}}
 [etcd]
 {{- $key := print $key_base "/etcd/root_key"}}
 root_key={{getv $key}}
-dir_value={{getenv "CONFD__E3W__ETCD__DIR_VALUE"}}
+dir_value={{getenv "E3CH_DIR_VAL"}}
 {{- range print $key_base "/etcd/endpoints/*" | gets}}
 endpoint={{.Value}}
 {{- end}}
