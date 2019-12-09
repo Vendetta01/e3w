@@ -86,6 +86,11 @@ func main() {
 		panic(err)
 	}
 
+	if config.AppConf.Auth && !userAuths.IsEnabled {
+		log.Printf("ERROR: No user auth method successfuly registered but auth is enabled in config")
+		panic(errors.New("No user auth method successfuly registered but auth is enabled in config"))
+	}
+
 	log.Printf("INFO: main(): userAuths: %#v", userAuths)
 
 	log.Print("INFO: Creating router...")
