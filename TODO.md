@@ -7,3 +7,4 @@ TODO
 * [X] fail if auth is enabled but no method could be registered!
 * [X] auth_ldap: implement login criteria (e.g. group membership required)
 * [X] dir_value must be loaded form env and not from etcd
+* [X] auth_ldap: make group membership test optional

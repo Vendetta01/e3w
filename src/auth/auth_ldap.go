@@ -88,13 +88,15 @@ func (l Ldap) login(userCreds UserCredentials) (bool, error) {
 
 	userDN := searchResult.Entries[0].DN
 
-	// TODO: insert check if user is allowed before we check the password
-	allowed, err := isAllowedUser(con, l.GroupDNAllowedUsers, userDN)
-	if err != nil {
-		return false, errors.Wrap(err, "isAllowedUser(): ")
-	}
-	if !allowed {
-		return false, nil
+	// Check group membership if GroupDNAllowedUsers is defined
+	if l.GroupDNAllowedUsers != "" {
+		allowed, err := isAllowedUser(con, l.GroupDNAllowedUsers, userDN)
+		if err != nil {
+			return false, errors.Wrap(err, "isAllowedUser(): ")
+		}
+		if !allowed {
+			return false, nil
+		}
 	}
 
 	// Bind as the user to verify their password
