@@ -1,8 +1,6 @@
 package auth
 
 import (
-	"log"
-
 	"github.com/pkg/errors"
 )
 
@@ -101,15 +99,12 @@ func (userAuths *UserAuthentications) RegisterMethod(userAuth UserAuthentication
 // as soon as the first one succeeds. If all attempts fail false is returned along
 // with the last error code != nil
 func (userAuths *UserAuthentications) CanLogIn(userCreds UserCredentials) (bool, error) {
-	log.Printf("DEBUG: canLogIn(): userCreds: %+v\n", userCreds)
 	var lastErr error = nil
 	if len(userAuths.AuthMethods) < 1 {
 		return false, errNoActiveAuth
 	}
 	for _, authMethod := range userAuths.AuthMethods {
 		authOK, err := authMethod.login(userCreds)
-		log.Printf("DEBUG: CanLogIn(): authMethod: %+v; authOK: %v; err: %v",
-			authMethod, authOK, err)
 		if err != nil {
 			lastErr = err
 		}

@@ -2,14 +2,16 @@ package routers
 
 import (
 	"encoding/json"
-	"github.com/gin-gonic/gin"
-	"golang.org/x/net/context"
 	"io/ioutil"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"golang.org/x/net/context"
 )
 
+// constants TODO
 const (
-	ETCD_CLIENT_TIMEOUT = 3 * time.Second
+	ETCDClientTimeout = 3 * time.Second
 )
 
 func parseBody(c *gin.Context, t interface{}) error {
@@ -23,6 +25,6 @@ func parseBody(c *gin.Context, t interface{}) error {
 }
 
 func newEtcdCtx() context.Context {
-	ctx, _ := context.WithTimeout(context.Background(), ETCD_CLIENT_TIMEOUT)
+	ctx, _ := context.WithTimeout(context.Background(), ETCDClientTimeout)
 	return ctx
 }

@@ -1,10 +1,11 @@
 package conf
 
 import (
-	"log"
 	"os"
 	"reflect"
 	"testing"
+
+	log "github.com/sirupsen/logrus"
 )
 
 func TestNewConfigFromINI(t *testing.T) {
@@ -34,7 +35,7 @@ func TestNewConfigFromCMD(t *testing.T) {
 		"-auth=false"}
 	config, err := NewConfig()
 
-	log.Printf("DEBUG: config: %+v", config)
+	log.WithField("config", config).Info("DEBUG: config:")
 
 	if err != nil {
 		t.Fatal(err)

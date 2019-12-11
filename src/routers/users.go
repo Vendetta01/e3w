@@ -9,9 +9,8 @@ func getUsersHandler(c *gin.Context, client *clientv3.Client) (interface{}, erro
 	resp, err := client.UserList(newEtcdCtx())
 	if err != nil {
 		return nil, err
-	} else {
-		return resp.Users, nil
 	}
+	return resp.Users, nil
 }
 
 type createUserRequest struct {
@@ -39,9 +38,8 @@ func getUserRolesHandler(c *gin.Context, client *clientv3.Client) (interface{}, 
 	resp, err := client.UserGet(newEtcdCtx(), name)
 	if err != nil {
 		return nil, err
-	} else {
-		return resp.Roles, nil
 	}
+	return resp.Roles, nil
 }
 
 func deleteUserHandler(c *gin.Context, client *clientv3.Client) (interface{}, error) {

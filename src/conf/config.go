@@ -3,10 +3,11 @@ package conf
 import (
 	"flag"
 	"fmt"
-	"log"
 
 	"github.com/pkg/errors"
 	"gopkg.in/ini.v1"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // stringSliceFlag defines a new type (string slice) for processing the same flag
@@ -39,6 +40,7 @@ type AppConfig struct {
 	TokenMaxAge int    `ini:"token_max_age"`
 	CertFile    string `ini:"cert_file"`
 	KeyFile     string `ini:"key_file"`
+	Debug       bool   `ini:"debug"`
 }
 
 // EtcdConfig contains the etcd connection configuration
@@ -70,6 +72,7 @@ func setCMDOptions(config *Config) {
 	flag.IntVar(&config.AppConf.TokenMaxAge, "tokenmaxage", 120, "How long is an authentication token valid (in seconds)")
 	flag.StringVar(&config.AppConf.CertFile, "certfile", "", "Web server cert file")
 	flag.StringVar(&config.AppConf.KeyFile, "keyfile", "", "Web server key file")
+	flag.BoolVar(&config.AppConf.Debug, "debug", false, "Enable debugging output")
 	flag.StringVar(&config.EtcdConf.RootKey, "etcdrootkey", "", "Root key (key prefix) used in etcd")
 	flag.StringVar(&config.EtcdConf.DirValue, "etcddirvalue", "__etcd_dir_value_fADFbkjqdfs6__", "Value representing directory keys")
 	flag.Var(&config.EtcdConf.EndPoints, "etcdendpoint", "Etcd endpoint (parameter can be set multiple times)")
@@ -136,7 +139,11 @@ func InitStructFromINI(s interface{}, secName, iniURL string) error {
 	if err != nil {
 		return errors.New(fmt.Sprintf("MapTo(s) failed: s: %+v; secName: %s; iniURL: %s", s, secName, iniURL))
 	}
-	log.Printf("DEBUG: InitStructFromINI(): config processed: s: %+v; secName: %s; iniURL: %s", s, secName, iniURL)
+	log.WithFields(log.Fields{
+		"struct":  s,
+		"secName": secName,
+		"iniURL":  iniURL,
+	}).Debug("InitStructFromINI(): config processed", s, secName, iniURL)
 
 	return nil
 }

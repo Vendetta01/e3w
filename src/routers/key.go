@@ -2,9 +2,10 @@ package routers
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/soyking/e3ch"
+	client "github.com/soyking/e3ch"
 )
 
+// Node todo
 type Node struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
@@ -34,14 +35,14 @@ func getKeyHandler(c *gin.Context, client *client.EtcdHRCHYClient) (interface{},
 			realNodes = append(realNodes, parseNode(node))
 		}
 		return realNodes, nil
-	} else {
-		node, err := client.Get(key)
-		if err != nil {
-			return nil, err
-		}
-
-		return parseNode(node), nil
 	}
+
+	node, err := client.Get(key)
+	if err != nil {
+		return nil, err
+	}
+
+	return parseNode(node), nil
 }
 
 type postRequest struct {
@@ -54,14 +55,14 @@ func postKeyHandler(c *gin.Context, client *client.EtcdHRCHYClient) (interface{}
 
 	if dir {
 		return nil, client.CreateDir(key)
-	} else {
-		r := new(postRequest)
-		err := parseBody(c, r)
-		if err != nil {
-			return nil, err
-		}
-		return nil, client.Create(key, r.Value)
 	}
+
+	r := new(postRequest)
+	err := parseBody(c, r)
+	if err != nil {
+		return nil, err
+	}
+	return nil, client.Create(key, r.Value)
 }
 
 func putKeyHandler(c *gin.Context, client *client.EtcdHRCHYClient) (interface{}, error) {

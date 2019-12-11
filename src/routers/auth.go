@@ -2,7 +2,7 @@ package routers
 
 import (
 	"encoding/json"
-	"log"
+	"fmt"
 
 	"net/http"
 	"time"
@@ -12,6 +12,8 @@ import (
 	"github.com/VendettA01/e3w/src/resp"
 	"github.com/gin-gonic/gin"
 	uuid "github.com/satori/go.uuid"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // this is the global token cache
@@ -32,19 +34,12 @@ func getSessionToken(tokenMaxAge int) string {
 // authRequired TODO
 func authRequired(userAuths *auth.UserAuthentications, config *conf.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// if authentication is disabled continue with next handler
-		// TODO: resolve this dependency on conf.Conf somehow
-		/*if !conf.Conf.Auth {
-			c.Next()
-			return
-		}*/
-
 		// Check if cookie is present
-		log.Print("authRequired: checking cookie...")
+		log.Debug("authRequired: checking cookie...")
 		userToken, err := c.Cookie("session_token")
 		if err != nil {
 			if err == http.ErrNoCookie {
-				log.Print("authRequired: no cookie found")
+				log.Debug("authRequired: no cookie found")
 				c.AbortWithStatusJSON(http.StatusUnauthorized,
 					&resp.Response{
 						Result: nil,
@@ -57,13 +52,13 @@ func authRequired(userAuths *auth.UserAuthentications, config *conf.Config) gin.
 					Err:    errAuthRequired.Error()})
 			return
 		}
-		log.Print("authRequired: cookie successfully read")
+		log.Debug("authRequired: cookie successfully read")
 
 		// Check provided session token for validity
 		expiresAt, ok := cache[userToken]
 		if !ok {
 			// Session token is invalid
-			log.Print("authRequired: session token invalid")
+			log.Debug("authRequired: session token invalid")
 			c.AbortWithStatusJSON(http.StatusUnauthorized, &resp.Response{
 				Result: nil,
 				Err:    errAuthRequired.Error()})
@@ -71,7 +66,7 @@ func authRequired(userAuths *auth.UserAuthentications, config *conf.Config) gin.
 		}
 		if expiresAt.Before(time.Now()) {
 			// Session token is expired
-			log.Print("authRequired: session token expired")
+			log.Debug("authRequired: session token expired")
 			delete(cache, userToken)
 			c.AbortWithStatusJSON(http.StatusUnauthorized,
 				&resp.Response{
@@ -84,7 +79,7 @@ func authRequired(userAuths *auth.UserAuthentications, config *conf.Config) gin.
 		delete(cache, userToken)
 		tokenMaxAge := config.AppConf.TokenMaxAge
 		c.SetCookie("session_token", getSessionToken(tokenMaxAge), tokenMaxAge, "", "", false, false)
-		log.Print("authRequired: Cookie set")
+		log.Debug("authRequired: Cookie set")
 	}
 }
 
@@ -101,7 +96,7 @@ func logIn(userAuths *auth.UserAuthentications, config *conf.Config) gin.Handler
 			return
 		}
 
-		log.Printf("DEBUG: logIn: POST: u: '%v', p: '%v'\n", userCreds.Username, userCreds.Password)
+		log.WithField("userCreds", fmt.Sprintf("%+v", userCreds)).Debug("logIn: POST")
 
 		loginSucessful, err := userAuths.CanLogIn(userCreds)
 		if err != nil {
@@ -113,7 +108,7 @@ func logIn(userAuths *auth.UserAuthentications, config *conf.Config) gin.Handler
 		}
 		if !loginSucessful {
 			// Invalid credentials
-			log.Println("logIn: username or password missmatch!")
+			log.Debug("logIn: username or password missmatch!")
 			c.AbortWithStatusJSON(http.StatusUnauthorized,
 				&resp.Response{
 					Result: nil,
